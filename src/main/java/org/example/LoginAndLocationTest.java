@@ -95,7 +95,7 @@ public class LoginAndLocationTest extends BaseTest {
         }
     }
 
-    private void threadTimer() {
+    protected void threadTimer() {
         try {
             Thread.sleep(3000);
         } catch (InterruptedException e) {

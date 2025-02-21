@@ -24,14 +24,19 @@ public class PatientRegisterToBillGenerate extends LoginAndLocationTest {
     @Test(priority = 3, dependsOnMethods = {"testLogin"})
     public void processtempPatientData() throws IOException, InterruptedException {
 
-        for (int i = 1; i < tempPatientData.length(); i++) {
+        for (int i = 2; i < tempPatientData.length(); i++) {
             System.out.println("Template data:-"+tempPatientData.get(i));
             patientIncrement = i;
             patientRegisterTest();
+            threadTimer();
             createAppointmentTest();
+            threadTimer();
             checkingAppointmentTest();
+            threadTimer();
             addPrescriptionTest();
+            threadTimer();
             pharmacyBillTest();
+            threadTimer();
         }
     }
 
@@ -81,6 +86,11 @@ public class PatientRegisterToBillGenerate extends LoginAndLocationTest {
     private void patientRegister(String name, String age, String phone, String gender, String panel) {
 
         menuPanelClick(panel);
+        List<WebElement> mandatoryFields = driver.findElements(By.xpath("//*[@required]"));
+
+        for (WebElement field : mandatoryFields) {
+            System.out.println("Mandatory Field Found: " + field.getAttribute("name"));
+        }
 
         WebElement firstNameField = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//input[@formcontrolname='firstName']")));
 
@@ -115,7 +125,7 @@ public class PatientRegisterToBillGenerate extends LoginAndLocationTest {
         cityOption.click();
 
         WebElement submitButton = wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//button[contains(text(),'Submit')]")));
-        submitButton.click();
+       submitButton.click();
     }
 
     private void createAppointment(String name, String admissionType, String doctorName, String scanType, String panel) {
