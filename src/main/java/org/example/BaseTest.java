@@ -41,8 +41,9 @@ public class BaseTest {
             throw new RuntimeException(e);
         }
         tempPatientData = new JSONArray(jsonData);
+        userDetails.add(new UserDetails("SharmaM", "Admisssssn@123"));
 
-//        userDetails.add(new UserDetails("Sharma", "Admin@123"));
+        userDetails.add(new UserDetails("Sharma", "Admisssssn@123"));
 
         userDetails.add(new UserDetails("scott", "scott"));
 

@@ -86,11 +86,104 @@ public class PatientRegisterToBillGenerate extends LoginAndLocationTest {
     private void patientRegister(String name, String age, String phone, String gender, String panel) {
 
         menuPanelClick(panel);
-        List<WebElement> mandatoryFields = driver.findElements(By.xpath("//*[@required]"));
 
-        for (WebElement field : mandatoryFields) {
-            System.out.println("Mandatory Field Found: " + field.getAttribute("name"));
+        List<WebElement> asteriskElements = driver.findElements(By.xpath(
+                "//span[contains(@style,'color: red') and text()='*']"
+        ));
+
+        System.out.println("Total Fields Marked with Red Asterisk: " + asteriskElements.size());
+
+        // Loop through mandatory fields
+        for (WebElement asterisk : asteriskElements) {
+            WebElement inputField = null;
+            try {
+                inputField = asterisk.findElement(By.xpath("./ancestor::label/following-sibling::input | ./parent::div//input | ./parent::div//select | ./parent::div//textarea"));
+            } catch (Exception e) {
+                System.out.println("No direct input found for this asterisk.");
+            }
+
+            if (inputField != null) {
+                // Highlight the field
+                JavascriptExecutor js = (JavascriptExecutor) driver;
+                js.executeScript("arguments[0].style.border='3px solid red'", inputField);
+
+                // Fill values based on field attributes
+                String title = inputField.getAttribute("title");
+                switch (title) {
+                    case "First Name":
+                        inputField.sendKeys(name);
+                        break;
+                    case "Age":
+                        inputField.sendKeys(age);
+                        break;
+                    case "Phone Number":
+                        inputField.sendKeys(phone);
+                        break;
+                    case "Gender":
+                        inputField.sendKeys(gender);
+                        break;
+                    case "State":
+                        new Select(inputField).selectByVisibleText("Tamil Nadu"); // Replace with state if needed
+                        break;
+                    case "City":
+                        new Select(inputField).selectByVisibleText("Chennai"); // Replace with city if needed
+                        break;
+                    default:
+                        System.out.println("Field not handled: " + title);
+                }
+            }
         }
+
+//        List<WebElement> asteriskElements = driver.findElements(By.xpath(
+//                "//span[contains(@style,'color: red') and text()='*']"
+//        ));
+//
+//        System.out.println("Total Fields Marked with Red Asterisk: " + asteriskElements.size());
+//
+//        JavascriptExecutor js = (JavascriptExecutor) driver;
+//
+//        for (WebElement asterisk : asteriskElements) {
+//            WebElement field = null;
+//
+//            try {
+//                // Look for input, select, or radio fields near the asterisk
+//                field = asterisk.findElement(By.xpath(
+//                        "./ancestor::label/following-sibling::input | " +
+//                                "./ancestor::label/following-sibling::select | " +
+//                                "./parent::div//input | " +
+//                                "./parent::div//select | " +
+//                                "./parent::div//input[@type='radio']"
+//                ));
+//            } catch (Exception e) {
+//                System.out.println("No direct field found for this asterisk.");
+//            }
+//
+//            if (field != null) {
+//                String tagName = field.getTagName();
+//                String fieldType = field.getAttribute("type");
+//
+//                // Highlight fields with different colors based on type
+//                if ("select".equals(tagName)) {
+//                    js.executeScript("arguments[0].style.border='3px solid blue'", field); // Dropdown
+//                    System.out.println("Highlighted SELECT field.");
+//                } else if ("radio".equals(fieldType)) {
+//                    js.executeScript("arguments[0].style.outline='3px solid green'", field); // Radio button
+//                    System.out.println("Highlighted RADIO button.");
+//                } else {
+//                    js.executeScript("arguments[0].style.border='3px solid red'", field); // Text Input
+//                    System.out.println("Highlighted INPUT field.");
+//                }
+//
+//                // Print field details
+//                String title = field.getAttribute("title");
+//                String formControlName = field.getAttribute("formcontrolname");
+//                String placeholder = field.getAttribute("placeholder");
+//
+//                System.out.println("Mandatory Field -> Title: " + title +
+//                        ", FormControlName: " + formControlName +
+//                        ", Placeholder: " + placeholder);
+//            }
+//        }
 
         WebElement firstNameField = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//input[@formcontrolname='firstName']")));
 
@@ -125,7 +218,7 @@ public class PatientRegisterToBillGenerate extends LoginAndLocationTest {
         cityOption.click();
 
         WebElement submitButton = wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//button[contains(text(),'Submit')]")));
-       submitButton.click();
+        submitButton.click();
     }
 
     private void createAppointment(String name, String admissionType, String doctorName, String scanType, String panel) {

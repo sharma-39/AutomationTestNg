@@ -8,21 +8,23 @@ import org.testng.annotations.Test;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
 public class ForgetPasswordTest extends BaseTest {
 
 
-    @Test(priority = 0)
+    @Test(priority = 1)
     public void forgetPasswordUrl() {
 
 
+        WebElement forgotPasswordLink = wait.until(ExpectedConditions.elementToBeClickable(
+                By.xpath("//a[contains(text(),'Forgot password?')]")
+        ));
+        forgotPasswordLink.click();
+
         for (int i = 0; i < userDetails.size(); i++) {
-            WebElement forgotPasswordLink = wait.until(ExpectedConditions.elementToBeClickable(
-                    By.xpath("//a[contains(text(),'Forgot password?')]")
-            ));
-            forgotPasswordLink.click();
 
             WebElement usernameField = wait.until(ExpectedConditions.elementToBeClickable(
                     By.xpath("//input[@placeholder='Username']")
@@ -35,8 +37,9 @@ public class ForgetPasswordTest extends BaseTest {
             WebElement resetButton = wait.until(ExpectedConditions.elementToBeClickable(
                     By.xpath("//button[contains(text(),'Reset Password')]")
             ));
-            resetButton.click();
+
             try {
+                resetButton.click();
                 // Capture Success Message
                 WebElement successMsg = wait.until(ExpectedConditions.visibilityOfElementLocated(
                         By.xpath("//p[contains(text(),'A password reset link has been sent')]")
@@ -47,6 +50,10 @@ public class ForgetPasswordTest extends BaseTest {
 
                 String messageText = successMsg.getText();
                 System.out.println("Captured Success Message: " + messageText);
+                //db saved status
+
+                DBUtil.forgetValidation(userDetails.get(i).getUserName(), messageText, "Success");
+
 
                 Assert.assertEquals(messageText,
                         "A password reset link has been sent to your email. Please check your inbox and follow the instructions to reset your password.",
@@ -54,15 +61,18 @@ public class ForgetPasswordTest extends BaseTest {
 
                 // Take Success Screenshot
                 File successScreenshot = ((TakesScreenshot) driver).getScreenshotAs(OutputType.FILE);
-                File successDestination = new File("D:\\TestingScreenshot\\"+userDetails.get(i).getUserName()+"_"+i+"_highlighted_success_message.png");
+                Instant now = Instant.now();
+                File successDestination = new File("D:\\TestingScreenshot\\"+userDetails.get(i).getUserName()+"_"+now.toEpochMilli()+"_highlighted_success_message.png");
                 Files.copy(successScreenshot.toPath(), successDestination.toPath());
+
                 System.out.println("Success Screenshot saved at: " + successDestination.getAbsolutePath());
 
             } catch (TimeoutException e) {
                 try {
-                    // Capture Failure/Error Message
+                    resetButton.click();
+                    // Increased timeout
                     WebElement errorMsg = wait.until(ExpectedConditions.visibilityOfElementLocated(
-                            By.xpath("//p[contains(text(),'Invalid Username') or contains(text(),'Error')]")
+                            By.xpath("//p[contains(text(),'Invalid Username')]") // Refined XPath
                     ));
 
                     // Highlight in RED
@@ -71,20 +81,24 @@ public class ForgetPasswordTest extends BaseTest {
                     String errorText = errorMsg.getText();
                     System.out.println("Captured Error Message: " + errorText);
 
+                    DBUtil.forgetValidation(userDetails.get(i).getUserName(), errorText, "Failure");
 
-                    Assert.assertTrue(errorText.contains("Invalid Username"), "Unexpected error message!");
+
+                    // Updated assertion to match the full message
+                    Assert.assertTrue(errorText.contains("Invalid Username! Please try again."), "Unexpected error message!");
 
                     // Take Error Screenshot
                     File errorScreenshot = ((TakesScreenshot) driver).getScreenshotAs(OutputType.FILE);
-                    File errorDestination = new File("D:\\TestingScreenshot\\"+userDetails.get(i).getUserName()+i+"_highlighted_error_message.png");
+                    Instant now = Instant.now();
+                    File errorDestination = new File("D:\\TestingScreenshot\\" + userDetails.get(i).getUserName() + now.toEpochMilli() + "_highlighted_error_message.png");
                     Files.copy(errorScreenshot.toPath(), errorDestination.toPath());
                     System.out.println("Error Screenshot saved at: " + errorDestination.getAbsolutePath());
 
                 } catch (TimeoutException | IOException ex) {
-                    System.out.println("No success or error message displayed.");
+                    System.out.println("Error block exception: " + ex.getMessage());
                 }
             } catch (IOException e) {
-                throw new RuntimeException(e);
+               e.printStackTrace();
             }
 
         }
