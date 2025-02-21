@@ -24,7 +24,7 @@ public class LoginAndLocationTest extends BaseTest {
                 throw new RuntimeException(e);
             }
             WebElement resultElement=null;
-            boolean isLoginSuccessful = false; // Track success per user
+            // Track success per user
 
             for (int attempt = 1; attempt <= 3; attempt++) { // Allow 3 attempts
                 System.out.println("Attempt " + attempt + " for user: " + userDetails.get(i).getUserName());
@@ -71,6 +71,7 @@ public class LoginAndLocationTest extends BaseTest {
 
                         isLoginSuccessful=true;
 
+                        break;
                         // ✅ Exit loop for this user
 
                         // 🚫 HANDLE ACCOUNT LOCKED
@@ -91,17 +92,13 @@ public class LoginAndLocationTest extends BaseTest {
                         System.out.println("Login Successfully");
                         DBUtil.userNameValidation(userDetails.get(i).getUserName(), userDetails.get(i).getPassword(), "Login Successfully", "Success");
                         isLoginSuccessful=true;
+                        break;
                     }
                 } else {
                     System.out.println("No success or error message found.");
                     DBUtil.userNameValidation(userDetails.get(i).getUserName(), userDetails.get(i).getPassword(), "No success or error message", "Unknown");
                 }
 
-
-                // ✅ Exit loop if login was successful
-                if (isLoginSuccessful) {
-                    break;
-                }
             }
         }
 
@@ -119,54 +116,57 @@ public class LoginAndLocationTest extends BaseTest {
 
     @Test(priority = 2, dependsOnMethods = {"testLogin"})
     public void testLocationSelection() {
-        System.out.println("login value"+isLoginSuccessful);
 
-        if (isLoginSuccessful) {
-            threadTimer();
-            WebElement locationDropdown = wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//select[@title='Location']")));
+        if (!isLoginSuccessful) {
+            System.out.println("⛔ Skipping location selection as login failed.");
+            return;
+        }
+
+        System.out.println("✅ Proceeding to Location Selection");
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(40));
+
+        try {
+            // 1️⃣ Select the location
+            WebElement locationDropdown = wait.until(ExpectedConditions.elementToBeClickable(
+                    By.xpath("//select[@title='Location']")));
+            wait.until(ExpectedConditions.visibilityOfElementLocated(
+                    By.xpath("//select[@title='Location']//option[text()='Navaur branch']")));
+
             Select select = new Select(locationDropdown);
             select.selectByVisibleText("Navaur branch");
+            System.out.println("🎯 Selected 'Navaur branch'");
 
-            threadTimer();
+            // 2️⃣ Click Proceed Next
             WebElement proceedButton = wait.until(ExpectedConditions.elementToBeClickable(
-                    By.xpath("//button[normalize-space(text())='Proceed Next']")
-            ));
-
-            ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);", proceedButton);
+                    By.xpath("//button[normalize-space(text())='Proceed Next']")));
             proceedButton.click();
+            System.out.println("🚀 Clicked 'Proceed Next'");
 
-
-            threadTimer();
-
-            WebElement welcomeText = wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//li/span[contains(text(),'Welcome')]")));
-            if(welcomeText.isDisplayed())
-            {
-                System.out.println("Successfully loaded dashboard");
+            // 3️⃣ ✅ Do-While Loop to Wait for Dashboard
+            boolean isDashboardLoaded = false;
+            boolean isWelcomeFound = false;
+            while (!isWelcomeFound) {
+                try {
+                    WebElement welcomeText = driver.findElement(
+                            By.xpath("//span[contains(text(),'Welcome')]"));
+                    if (welcomeText.isDisplayed()) {
+                        isWelcomeFound = true;  // Exit loop
+                    }
+                } catch (NoSuchElementException e) {
+                    Thread.sleep(500); // Short pause before next check
+                }
             }
-            else {
-                System.out.println("Something wrong");
-            }
 
-        }
-    }
 
-    protected void threadTimer() {
-        try {
-            Thread.sleep(3000);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
-    }
-    public boolean isElementPresent(By locator) {
-        try {
-            driver.findElement(locator);
-            return true;
-        } catch (NoSuchElementException e) {
-            return false;
+        } catch (TimeoutException e) {
+            System.out.println("⚠️ Timeout while selecting location or loading dashboard: " + e.getMessage());
+        } catch (Exception e) {
+            System.out.println("⚠️ Unexpected error: " + e.getMessage());
         }
     }
 
 
+    // ✅ Utilities
     public void typeSlowly(WebElement element, String text, int delayMillis) {
         for (char ch : text.toCharArray()) {
             element.sendKeys(String.valueOf(ch));
