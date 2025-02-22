@@ -2,7 +2,7 @@
 <suite name="SeleniumSuite">
     <test name="FullFlow">
         <classes>
-            <class name="org.example.UrlEmpedded"/>
+            <class name="org.example.PatientRegisterToBillGenerate"/>
         </classes>
     </test>
 </suite>

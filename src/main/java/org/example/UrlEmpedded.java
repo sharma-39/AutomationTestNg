@@ -65,7 +65,7 @@ public class UrlEmpedded extends LoginAndLocationTest{
                 closeButton.click();
 
                 // Wait for a few seconds to observe the result
-               threadTimer(3000);
+               threadTimer(4000);
             }
 
         }
