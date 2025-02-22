@@ -1,6 +1,5 @@
 package org.example;
 
-import org.json.JSONArray;
 import org.json.JSONObject;
 import org.openqa.selenium.*;
 import org.openqa.selenium.support.ui.ExpectedConditions;
@@ -9,14 +8,10 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 import org.testng.annotations.*;
 
 import java.awt.*;
-import java.awt.event.KeyEvent;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class PatientRegisterToBillGenerate extends LoginAndLocationTest {
     private long THREAD_SECONDS = 3000;
@@ -28,29 +23,21 @@ public class PatientRegisterToBillGenerate extends LoginAndLocationTest {
 
         if (isLoginSuccessful) {
             for (int i = 0; i < tempPatientData.length(); i++) {
-                threadTimer();
+                threadTimer(1000);
 
                 System.out.println("Template data:-" + tempPatientData.get(i));
                 patientIncrement = i;
                 patientRegisterTest();
-                threadTimer();
+                threadTimer(1000);
                 createAppointmentTest();
-                threadTimer();
+                threadTimer(1000);
                 checkingAppointmentTest();
-                threadTimer();
+                threadTimer(1000);
                 addPrescriptionTest();
-                threadTimer();
+                threadTimer(1000);
                 pharmacyBillTest();
-                threadTimer();
+                threadTimer(1000);
             }
-        }
-    }
-
-    private void threadTimer() {
-        try {
-            Thread.sleep(1000);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
         }
     }
 
@@ -65,8 +52,6 @@ public class PatientRegisterToBillGenerate extends LoginAndLocationTest {
     @Test(priority = 5, dependsOnMethods = {"patientRegisterTest"})
     public void createAppointmentTest() throws IOException {
         if (isLoginSuccessful) {
-            String jsonData = new String(Files.readAllBytes(Paths.get("D:\\TestingData\\testing_data.json")));
-            JSONArray tempPatientData = new JSONArray(jsonData);
             JSONObject patient = tempPatientData.getJSONObject(patientIncrement);
             createAppointment(patient.getString("patientName"), patient.getString("admissionType"), patient.getString("doctorName"), patient.getString("scanType"), "Create Appointment");
         }
@@ -100,16 +85,12 @@ public class PatientRegisterToBillGenerate extends LoginAndLocationTest {
     private void patientRegister(String name, String age, String phone, String gender, String panel) {
 
         menuPanelClick(panel);
-        JavascriptExecutor js1 = (JavascriptExecutor) driver;
-
-
         HashMap<String, String> fieldData = new HashMap<>();
 
         List<WebElement> asteriskElements = driver.findElements(By.xpath(
                 "//span[contains(@style,'color: red') and text()='*']"
         ));
         for (WebElement asterisk : asteriskElements) {
-            // Get the associated label for context
             WebElement label = asterisk.findElement(By.xpath("preceding-sibling::label"));
             String fieldName = label.getText().trim();
 
@@ -117,70 +98,12 @@ public class PatientRegisterToBillGenerate extends LoginAndLocationTest {
 
             for (WebElement input : inputFields) {
                 if (input.isDisplayed() && input.isEnabled()) {
-                    // Get formcontrolname attribute
                     String formControlName = input.getAttribute("formcontrolname");
-                    //   System.out.println("Form Control Name: " + formControlName);
-
-                    //  Example action: send keys only to fields with asterisk
                     if (formControlName != null) {
                     }
                 }
             }
         }
-
-//        List<WebElement> asteriskElements = driver.findElements(By.xpath(
-//                "//span[contains(@style,'color: red') and text()='*']"
-//        ));
-//
-//        System.out.println("Total Fields Marked with Red Asterisk: " + asteriskElements.size());
-//
-//        JavascriptExecutor js = (JavascriptExecutor) driver;
-//
-//        for (WebElement asterisk : asteriskElements) {
-//            WebElement field = null;
-//
-//            try {
-//                // Look for input, select, or radio fields near the asterisk
-//                field = asterisk.findElement(By.xpath(
-//                        "./ancestor::label/following-sibling::input | " +
-//                                "./ancestor::label/following-sibling::select | " +
-//                                "./parent::div//input | " +
-//                                "./parent::div//select | " +
-//                                "./parent::div//input[@type='radio']"
-//                ));
-//            } catch (Exception e) {
-//                System.out.println("No direct field found for this asterisk.");
-//            }
-//
-//            if (field != null) {
-//                String tagName = field.getTagName();
-//                String fieldType = field.getAttribute("type");
-//
-//                // Highlight fields with different colors based on type
-//                if ("select".equals(tagName)) {
-//                    js.executeScript("arguments[0].style.border='3px solid blue'", field); // Dropdown
-//                    System.out.println("Highlighted SELECT field.");
-//                } else if ("radio".equals(fieldType)) {
-//                    js.executeScript("arguments[0].style.outline='3px solid green'", field); // Radio button
-//                    System.out.println("Highlighted RADIO button.");
-//                } else {
-//                    js.executeScript("arguments[0].style.border='3px solid red'", field); // Text Input
-//                    System.out.println("Highlighted INPUT field.");
-//                }
-//
-//                // Print field details
-//                String title = field.getAttribute("title");
-//                String formControlName = field.getAttribute("formcontrolname");
-//                String placeholder = field.getAttribute("placeholder");
-//
-//                System.out.println("Mandatory Field -> Title: " + title +
-//                        ", FormControlName: " + formControlName +
-//                        ", Placeholder: " + placeholder);
-//            }
-//        }
-
-
-
         try {
 
             patientFormSubmit(driver);
@@ -198,11 +121,9 @@ public class PatientRegisterToBillGenerate extends LoginAndLocationTest {
             patientFormSubmit(driver);
             errorMessageHandle(driver);
             selectFromMatSelectDropdown(driver, wait, "mat-select-0", "Chennai");
+
+
             patientFormSubmit(driver);
-            errorMessageHandle(driver);
-
-
-
         }
         catch (Exception e)
         {
@@ -220,10 +141,8 @@ public class PatientRegisterToBillGenerate extends LoginAndLocationTest {
                 By.xpath("//div[contains(@class, 'error-msg')]")
         ));
 
-        // Check if the error message is highlighted
         highlightElement(driver, errorMessage);
 
-        // Print the error message text
         String errorText = errorMessage.getText().trim();
         System.out.println("Error!:"+errorText);
     }
@@ -247,18 +166,11 @@ public class PatientRegisterToBillGenerate extends LoginAndLocationTest {
                 ExpectedConditions.elementToBeClickable(By.name("patientCode"))
         );
         patientCodeInput.click();
-        try {
-            Thread.sleep(1000); // Ensure dropdown gets triggered
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
 
-        patientCodeInput.sendKeys(Keys.BACK_SPACE); // Clear previous input
-        try {
-            Thread.sleep(500);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
+        threadTimer(1000);
+
+        patientCodeInput.sendKeys(Keys.BACK_SPACE);
+        threadTimer(500);
         patientCodeInput.sendKeys(name);
 
 
@@ -383,12 +295,7 @@ public class PatientRegisterToBillGenerate extends LoginAndLocationTest {
         wait.until(ExpectedConditions.elementToBeClickable(billButton)).click();
 
 
-        try {
-            Thread.sleep(THREAD_SECONDS);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
-
+        threadTimer(3000);
         // Wait for the "Generate Bill" button to be present
         WebElement generateBillButton = wait.until(ExpectedConditions.presenceOfElementLocated(
                 By.xpath("//button[contains(text(),'Generate Bill')]")
@@ -409,43 +316,24 @@ public class PatientRegisterToBillGenerate extends LoginAndLocationTest {
                 By.xpath("//button[contains(text(),'Pay')]")
         ));
 
-// Scroll to the button (if needed)
         ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);", payButton);
-        try {
-            Thread.sleep(THREAD_SECONDS); // Small delay to ensure visibility
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
 
-// Click the button
+        threadTimer(3000);
         payButton.click();
 
         System.out.println("Pay button clicked successfully.");
 
-
-        try {
-            Thread.sleep(5000);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
-
+        threadTimer(5000);
         Robot robot = null;
         try {
             robot = new Robot();
         } catch (AWTException e) {
             throw new RuntimeException(e);
         }
-
-
-        try {
-            Thread.sleep(2000); // Wait for print dialog
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
-
-        // Press ESC to cancel print
-        robot.keyPress(KeyEvent.VK_ESCAPE);
-        robot.keyRelease(KeyEvent.VK_ESCAPE);
+        threadTimer(2000);
+        //close print screen
+//        robot.keyPress(KeyEvent.VK_ESCAPE);
+//        robot.keyRelease(KeyEvent.VK_ESCAPE);
     }
 
 
@@ -499,12 +387,7 @@ public class PatientRegisterToBillGenerate extends LoginAndLocationTest {
 
 
     private void menuPanelClick(String panel) {
-
-        try {
-            Thread.sleep(4000);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
+        threadTimer(2000);
         WebElement menuButton = driver.findElement(By.id("mega-menu-nav-btn"));
         if (menuButton.isDisplayed()) {
             JavascriptExecutor js = (JavascriptExecutor) driver;
@@ -513,11 +396,7 @@ public class PatientRegisterToBillGenerate extends LoginAndLocationTest {
         } else {
             System.out.println("Menu Button is not visible, skipping click action.");
         }
-        try {
-            Thread.sleep(3000);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
+        threadTimer(3000);
 
         wait.until(ExpectedConditions.invisibilityOfElementLocated(By.className("page-loader-wrapper")));
 
@@ -538,55 +417,40 @@ public class PatientRegisterToBillGenerate extends LoginAndLocationTest {
         System.out.println("Filled " + formControlName + " with value: " + value);
     }
 
-    /**
-     * Selects a radio button based on the given value.
-     *
-     * @param driver       The WebDriver instance.
-     * @param wait         The WebDriverWait instance.
-     * @param formControlName The formcontrolname attribute of the radio button group.
-     * @param value        The value of the radio button to select.
-     */
     private static void selectRadioButton(WebDriver driver, WebDriverWait wait, String formControlName, String value) {
         JavascriptExecutor js1 = (JavascriptExecutor) driver;
         WebElement element = driver.findElement(By.xpath("//input[@formcontrolname='"+formControlName+"' and @value='" + value + "']"));
         js1.executeScript("arguments[0].click();", element);
 
     }
-    /**
-     * Selects an option from a MatSelect dropdown.
-     *
-     * @param driver       The WebDriver instance.
-     * @param wait         The WebDriverWait instance.
-     * @param matSelectId  The ID of the MatSelect dropdown.
-     * @param optionText   The text of the option to select.
-     */
     private static void selectFromMatSelectDropdown(WebDriver driver, WebDriverWait wait, String matSelectId, String optionText) {
-        // Step 1: Click the MatSelect dropdown to open the options
-        // Step 1: Click the MatSelect dropdown to open the options
         WebElement matSelect = wait.until(ExpectedConditions.elementToBeClickable(By.id("mat-select-0")));
         matSelect.click();
 
-        // Step 2: Wait for the options to be visible
         WebElement cityOption = wait.until(ExpectedConditions.elementToBeClickable(
                 By.xpath("//span[contains(text(), 'Chennai')]")
         ));
-
-        // Step 3: Click on the option to select it
         cityOption.click();
         System.out.println("Selected option: " + optionText);
     }
 
 
-    private static void highlightElement(WebDriver driver, WebElement element) {
+
+    private void highlightElement(WebDriver driver, WebElement element) {
         JavascriptExecutor js = (JavascriptExecutor) driver;
         js.executeScript("arguments[0].style.border='3px solid red';", element);
         System.out.println("Highlighted the error message element.");
 
+        threadTimer(2000);
+
+
+    }
+
+    public void threadTimer(long seconds) {
         try {
-            Thread.sleep(3000);
+            Thread.sleep(seconds);
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
-
     }
 }

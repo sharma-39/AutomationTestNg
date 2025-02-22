@@ -42,17 +42,22 @@ public class BaseTest {
             throw new RuntimeException(e);
         }
         tempPatientData = new JSONArray(jsonData);
-        userDetails.add(new UserDetails("SharmaM", "Admisssssn@123"));
-
-        userDetails.add(new UserDetails("Sharma", "Admisssssn@123"));
+//        userDetails.add(new UserDetails("SharmaM", "Admisssssn@123"));
+//
+//        userDetails.add(new UserDetails("Sharma", "Admisssssn@123"));
 
         userDetails.add(new UserDetails("scott", "scott"));
 
 //        userDetails.add(new UserDetails("unknownusernamessssssssssssssss", "Admin@123"));
 
     }
-
-
+    public void threadTimer(long seconds) {
+        try {
+            Thread.sleep(seconds);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+    }
     @AfterClass
     public void tearDown() {
 //        if (driver != null && isLoginSuccessful) {

@@ -68,7 +68,6 @@ public class LoginAndLocationTest extends BaseTest {
                         DBUtil.userNameValidation(userDetails.get(i).getUserName(), userDetails.get(i).getPassword(), "Login Successfully", "Success");
 
                         isLoginSuccessful=true;
-
                         break;
                     } else if (resultText.contains("temporarily locked")) {
                         System.out.println("Account Locked: " + resultText);
