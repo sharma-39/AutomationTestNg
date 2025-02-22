@@ -1,8 +1,12 @@
 package org.example;
 
 import org.json.JSONArray;
+import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
@@ -21,6 +25,9 @@ public class BaseTest {
     protected boolean isDashboardLoaded = false;
     protected JSONArray tempPatientData;
 
+    protected  Boolean isAgeInMonth=false;
+
+    protected  Boolean getIsAgeInYear=false;
     protected List<UserDetails> userDetails = new ArrayList<>();
 
     @BeforeClass
@@ -57,6 +64,27 @@ public class BaseTest {
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
+    }
+    protected void menuPanelClick(String panel) {
+        threadTimer(3000);
+        WebElement menuButton = driver.findElement(By.id("mega-menu-nav-btn"));
+        if (menuButton.isDisplayed()) {
+            JavascriptExecutor js = (JavascriptExecutor) driver;
+            js.executeScript("arguments[0].click();", menuButton);
+            System.out.println("Clicked on Menu Button");
+        } else {
+            System.out.println("Menu Button is not visible, skipping click action.");
+        }
+        threadTimer(3000);
+
+        wait.until(ExpectedConditions.invisibilityOfElementLocated(By.className("page-loader-wrapper")));
+
+        WebElement panelClick = wait.until(
+                ExpectedConditions.elementToBeClickable(By.xpath("//a[contains(text(),'" + panel + "')]"))
+        );
+
+
+        panelClick.click();
     }
     @AfterClass
     public void tearDown() {

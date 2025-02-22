@@ -458,30 +458,6 @@ public class PatientRegisterToBillGenerate extends LoginAndLocationTest {
         }
     }
 
-
-
-    private void menuPanelClick(String panel) {
-        threadTimer(3000);
-        WebElement menuButton = driver.findElement(By.id("mega-menu-nav-btn"));
-        if (menuButton.isDisplayed()) {
-            JavascriptExecutor js = (JavascriptExecutor) driver;
-            js.executeScript("arguments[0].click();", menuButton);
-            System.out.println("Clicked on Menu Button");
-        } else {
-            System.out.println("Menu Button is not visible, skipping click action.");
-        }
-        threadTimer(3000);
-
-        wait.until(ExpectedConditions.invisibilityOfElementLocated(By.className("page-loader-wrapper")));
-
-        WebElement panelClick = wait.until(
-                ExpectedConditions.elementToBeClickable(By.xpath("//a[contains(text(),'" + panel + "')]"))
-        );
-
-
-        panelClick.click();
-    }
-
     private  void fillInputField(WebDriver driver, WebDriverWait wait, String formControlName, String value) {
         WebElement inputField = wait.until(ExpectedConditions.visibilityOfElementLocated(
                 By.xpath("//input[@formcontrolname='" + formControlName + "']")

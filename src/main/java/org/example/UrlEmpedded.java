@@ -57,8 +57,10 @@ public class UrlEmpedded extends LoginAndLocationTest{
                 String isConfig = null;
                 if (ageGenderElement.getText().contains("Y")) {
                     System.out.println("Age In Month | Year");
+                    isAgeInMonth=true;
                 } else {
                     System.out.println("Age in Year");
+                    isAgeInMonth=true;
                 }
 
                 WebElement closeButton = driver.findElement(By.xpath("//button[contains(text(), 'Close')]"));
@@ -69,27 +71,5 @@ public class UrlEmpedded extends LoginAndLocationTest{
             }
 
         }
-    }
-
-    private void menuPanelClick(String panel) {
-        threadTimer(3000);
-        WebElement menuButton = driver.findElement(By.id("mega-menu-nav-btn"));
-        if (menuButton.isDisplayed()) {
-            JavascriptExecutor js = (JavascriptExecutor) driver;
-            js.executeScript("arguments[0].click();", menuButton);
-            System.out.println("Clicked on Menu Button");
-        } else {
-            System.out.println("Menu Button is not visible, skipping click action.");
-        }
-        threadTimer(3000);
-
-        wait.until(ExpectedConditions.invisibilityOfElementLocated(By.className("page-loader-wrapper")));
-
-        WebElement panelClick = wait.until(
-                ExpectedConditions.elementToBeClickable(By.xpath("//a[contains(text(),'" + panel + "')]"))
-        );
-
-
-        panelClick.click();
     }
 }
