@@ -27,7 +27,7 @@ public class PatientRegisterToBillGenerate extends LoginAndLocationTest {
     public void processtempPatientData() throws IOException, InterruptedException {
 
         if (isLoginSuccessful) {
-            for (int i = 16; i < tempPatientData.length(); i++) {
+            for (int i = 0; i < tempPatientData.length(); i++) {
                 threadTimer();
 
                 System.out.println("Template data:-" + tempPatientData.get(i));

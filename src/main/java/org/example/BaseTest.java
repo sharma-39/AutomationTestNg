@@ -17,11 +17,11 @@ import java.util.List;
 public class BaseTest {
     protected WebDriver driver;
     protected WebDriverWait wait;
-    protected boolean isLoginSuccessful =false;
-    protected boolean isDashboardLoaded =false;
+    protected boolean isLoginSuccessful = false;
+    protected boolean isDashboardLoaded = false;
     protected JSONArray tempPatientData;
 
-    protected List<UserDetails> userDetails=new ArrayList<>();
+    protected List<UserDetails> userDetails = new ArrayList<>();
 
     @BeforeClass
     public void setUp() {
@@ -42,9 +42,9 @@ public class BaseTest {
             throw new RuntimeException(e);
         }
         tempPatientData = new JSONArray(jsonData);
-//        userDetails.add(new UserDetails("SharmaM", "Admisssssn@123"));
-//
-//        userDetails.add(new UserDetails("Sharma", "Admisssssn@123"));
+        userDetails.add(new UserDetails("SharmaM", "Admisssssn@123"));
+
+        userDetails.add(new UserDetails("Sharma", "Admisssssn@123"));
 
         userDetails.add(new UserDetails("scott", "scott"));
 

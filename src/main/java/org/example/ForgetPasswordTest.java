@@ -30,9 +30,9 @@ public class ForgetPasswordTest extends BaseTest {
                     By.xpath("//input[@placeholder='Username']")
             ));
 
-            usernameField.click(); // Click the input field
-            usernameField.clear(); // Clear existing text if any
-            usernameField.sendKeys(userDetails.get(i).getUserName()); // Fill with desired text
+            usernameField.click();
+            usernameField.clear();
+            usernameField.sendKeys(userDetails.get(i).getUserName());
 
             WebElement resetButton = wait.until(ExpectedConditions.elementToBeClickable(
                     By.xpath("//button[contains(text(),'Reset Password')]")
@@ -70,9 +70,9 @@ public class ForgetPasswordTest extends BaseTest {
             } catch (TimeoutException e) {
                 try {
                     resetButton.click();
-                    // Increased timeout
+
                     WebElement errorMsg = wait.until(ExpectedConditions.visibilityOfElementLocated(
-                            By.xpath("//p[contains(text(),'Invalid Username')]") // Refined XPath
+                            By.xpath("//p[contains(text(),'Invalid Username')]")
                     ));
 
                     // Highlight in RED
