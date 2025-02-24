@@ -54,4 +54,29 @@ public class DBUtil {
             System.out.println("Error saving to DB: " + e.getMessage());
         }
     }
+
+    public static void insertScenario(String scenarioDescription, String status) {
+
+        String sql = "INSERT INTO test_scenarios (scenario_description, status) VALUES (?, ?)";
+
+
+        try (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+
+            pstmt.setString(1, scenarioDescription);
+            pstmt.setString(2, status);
+
+            // 4. Execute Insert
+            int rowsInserted = pstmt.executeUpdate();
+            if (rowsInserted > 0) {
+                System.out.println("✅ Scenario stored successfully");
+            } else {
+                System.out.println("❌ Failed to store scenario");
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
 }

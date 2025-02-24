@@ -103,7 +103,7 @@ public class ConfigurateAge extends LoginAndLocationTest {
                 logSummary.append("✅ Enable: " + labelTextAge + " : ").append("|");
 
                 String log="";
-                for (int i = 69 + j; i <= 69 + j; i++) {
+                for (int i = 71 + j; i <= 71 + j; i++) {
                     patientIncrement = i;
 
 
@@ -139,15 +139,13 @@ public class ConfigurateAge extends LoginAndLocationTest {
                     } else {
                         logSummary.append("❌ Patient Code is null");
                     }
-                    System.out.println(logSummary.append(" | Completed ")
-                            .append(isAgeInMonth ? "Age In Month ✅" : "")
-                            .append(isAgeInYear ? "Age in Year ✅" : "").toString());
-                    logSummary=new StringBuilder();
-                    log=logSummary.append(" | Completed ")
+
+                    logSummary.append(" | Completed ")
                             .append(isAgeInMonth ? "Age In Month ✅" : "")
                             .append(isAgeInYear ? "Age in Year ✅" : "").toString();
-                }
 
+                    DBUtil.insertScenario(logSummary.toString(),"Success");
+                }
                 logSummaryList.add(log);
 
             }
@@ -508,9 +506,9 @@ public class ConfigurateAge extends LoginAndLocationTest {
             throw new RuntimeException(e);
         }
 
-        WebElement payButton = wait.until(ExpectedConditions.elementToBeClickable(
+        WebElement payButton = wait.until(ExpectedConditions.refreshed(ExpectedConditions.elementToBeClickable(
                 By.xpath("//button[contains(text(),'Pay')]")
-        ));
+        )));
 
         ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);", payButton);
 
@@ -763,7 +761,14 @@ public class ConfigurateAge extends LoginAndLocationTest {
                     throw new RuntimeException(ex);
                 }
             } catch (TimeoutException te) {
+
+                wait = new WebDriverWait(driver, Duration.ofSeconds(30));
+
+                billButton = row.findElement(By.xpath(".//button[@title='View']"));
+
+                wait.until(ExpectedConditions.refreshed(ExpectedConditions.elementToBeClickable(billButton))).click();
                 System.out.println("Timeout waiting for age element, retrying...");
+
                 try {
                     Thread.sleep(2000);
                 } catch (InterruptedException e) {
