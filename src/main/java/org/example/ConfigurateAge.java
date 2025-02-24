@@ -11,11 +11,14 @@ import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.io.IOException;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+
 public class ConfigurateAge extends LoginAndLocationTest {
 
+    StringBuffer stringBuffer=new StringBuffer();
     private long THREAD_SECONDS = 3000;
     static int patientIncrement = 0;
 
@@ -87,39 +90,68 @@ public class ConfigurateAge extends LoginAndLocationTest {
         if (isLoginSuccessful) {
 
 
+
+            List<String> logSummaryList=new ArrayList<>();
+
             for (int j = 0; j < ageLabel.size(); j++) {
+                StringBuilder logSummary = new StringBuilder();
                 labelTextAge = ageLabel.get(j);
+                patientCode = null;
+                isAgeInMonth=false;
+                getIsAgeInYear=false;
+                isAppoinmentCreated = false;
                 facilityConfigAge();
-                for (int i = 50+j; i <= 50+j; i++) {
+                logSummary.append("✅ Enable: "+labelTextAge +" : ").append("|");
+
+                for (int i = 45 + j; i <= 45 + j; i++) {
                     patientIncrement = i;
+
+
                     patientRegisterTest();
-                    System.out.println("✅ Completed Patient Register " + patientCode);
+                    logSummary.append("✅ Patient Registered: ").append(patientCode).append(" | ");
+
                     menuPanelClick("Dashboard");
                     threadTimer(3000);
+
                     if (patientCode != null) {
                         createAppointmentTest();
-                        System.out.println("✅ Completed Create Appointment " + patientCode);
+                        logSummary.append("✅ Appointment Created: ").append(patientCode).append(" | ");
 
                         if (isAppoinmentCreated) {
-
                             checkingAppointmentTest();
-                            System.out.println(" ✅ Completed Check in Appoinment" + patientCode);
+                            logSummary.append("✅ Checked In | ");
+
                             addPrescriptionTest();
-                            System.out.println("✅ Completed Prescription" + patientCode);
+                            logSummary.append("✅ Prescription Added | ");
+
                             pharmacyBillTest();
-                            System.out.println("✅Completed Pharmacy Bill Payment" + patientCode);
+                            logSummary.append("✅ Pharmacy Bill Paid | ");
+
                             Thread.sleep(4000);
                             PharmacyView();
+                            logSummary.append("✅ Pharmacy Viewed | ");
+
                             menuPanelClick("Dashboard");
-                            System.out.println("✅Loop Completed ");
-                            System.out.println("✅ Completed Patient Register ");
+                            logSummary.append("✅ Loop Completed");
                         } else {
-                            System.out.println("Appoinment Created failed. Retrying..");
+                            logSummary.append("❌ Appointment Creation Failed. Retrying...");
                         }
                     } else {
-                        System.out.println("Patient Code is null");
+                        logSummary.append("❌ Patient Code is null");
                     }
                 }
+                System.out.println(logSummary.append(" | Completed ")
+                        .append(isAgeInMonth ? "Age In Month ✅" : ""   )
+                        .append(getIsAgeInYear ? "Age in Year ✅" : "").toString());
+                logSummaryList.add(logSummary.append(" | Completed ")
+                        .append(isAgeInMonth ? "Age In Month ✅" : ""   )
+                        .append(getIsAgeInYear ? "Age in Year ✅" : "").toString());
+            }
+
+
+            for(int l=0;l<logSummaryList.size();l++)
+            {
+                System.out.println("Scanerio "+l+"✅" +logSummaryList);
             }
         }
     }
@@ -192,14 +224,15 @@ public class ConfigurateAge extends LoginAndLocationTest {
             selectRadioButton(driver, wait, "gender", gender);
             patientFormSubmit(driver);
             errorMessageHandle(driver);
-            selectFromMatSelectDropdown(driver, wait, "mat-select-0", "Chennai");
 
+            WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+            selectFromMatSelectDropdown(driver, wait, "Select", "Chennai");
 
             patientFormSubmit(driver);
 
-            WebElement successMessage = wait.until(ExpectedConditions.visibilityOfElementLocated(
+            WebElement successMessage = wait.until(ExpectedConditions.refreshed(ExpectedConditions.visibilityOfElementLocated(
                     By.xpath("//div[contains(@class, 'container-2')]/p[contains(text(), 'Registered Successfully')]")
-            ));
+            )));
 
             String messageText = successMessage.getText();
             System.out.println("Fetched Message: " + messageText);
@@ -219,15 +252,15 @@ public class ConfigurateAge extends LoginAndLocationTest {
     }
 
     private void patientFormSubmit(WebDriver driver) {
-        WebElement submitButton = wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//button[contains(text(),'Submit')]")));
+        WebElement submitButton = wait.until(ExpectedConditions.refreshed(ExpectedConditions.elementToBeClickable(By.xpath("//button[contains(text(),'Submit')]"))));
         submitButton.click();
 
     }
 
     private void errorMessageHandle(WebDriver driver) {
-        WebElement errorMessage = wait.until(ExpectedConditions.visibilityOfElementLocated(
+        WebElement errorMessage = wait.until(ExpectedConditions.refreshed(ExpectedConditions.visibilityOfElementLocated(
                 By.xpath("//div[contains(@class, 'error-msg')]")
-        ));
+        )));
 
         highlightElement(driver, errorMessage);
 
@@ -241,9 +274,9 @@ public class ConfigurateAge extends LoginAndLocationTest {
         menuPanelClick(panel);
 
 
-        WebElement patientSearchLabel = wait.until(ExpectedConditions.visibilityOfElementLocated(
+        WebElement patientSearchLabel = wait.until(ExpectedConditions.refreshed(ExpectedConditions.visibilityOfElementLocated(
                 By.xpath("//label[contains(text(), 'Patient Search')]")
-        ));
+        )));
         if (patientSearchLabel.getText().contains("Patient Search")) {
             System.out.println("Patient Search label found and loaded.");
             WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(50));
@@ -261,9 +294,9 @@ public class ConfigurateAge extends LoginAndLocationTest {
             System.out.println("Selected 'By Code' using JavaScript.");
 
             System.out.println("Custom dropdown option 'By Code' selected.");
-            WebElement patientCodeInput = wait.until(
+            WebElement patientCodeInput = wait.until(ExpectedConditions.refreshed(
                     ExpectedConditions.elementToBeClickable(By.name("patientCode"))
-            );
+            ));
 
 
             patientCodeInput.click();
@@ -275,7 +308,7 @@ public class ConfigurateAge extends LoginAndLocationTest {
             patientCodeInput.sendKeys(patientCode);
 
 
-            List<WebElement> options = wait.until(ExpectedConditions.visibilityOfAllElementsLocatedBy(By.xpath("//mat-option")));
+            List<WebElement> options = wait.until(ExpectedConditions.refreshed(ExpectedConditions.visibilityOfAllElementsLocatedBy(By.xpath("//mat-option"))));
 
             boolean found = false;
             for (WebElement option : options) {
@@ -291,16 +324,16 @@ public class ConfigurateAge extends LoginAndLocationTest {
             }
 
 
-            WebElement purposeDropdown = wait.until(ExpectedConditions.elementToBeClickable(
+            WebElement purposeDropdown = wait.until(ExpectedConditions.refreshed(ExpectedConditions.elementToBeClickable(
                     By.cssSelector("select[formcontrolname='purpose']")
-            ));
+            )));
 
             Select select = new Select(purposeDropdown);
             select.selectByVisibleText(admissionType);
 
 
             if (admissionType.equals("Scan")) {
-                WebElement dropdown = wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//select[@formcontrolname='scanType']")));
+                WebElement dropdown = wait.until(ExpectedConditions.refreshed(ExpectedConditions.elementToBeClickable(By.xpath("//select[@formcontrolname='scanType']"))));
                 Select selectScan = new Select(dropdown);
                 selectScan.selectByVisibleText(scanType);
             }
@@ -365,9 +398,9 @@ public class ConfigurateAge extends LoginAndLocationTest {
 
     private void checkingAppointment(String name, String panel) {
         menuPanelClick(panel);
-        WebElement row = wait.until(ExpectedConditions.presenceOfElementLocated(
+        WebElement row = wait.until(ExpectedConditions.refreshed(ExpectedConditions.presenceOfElementLocated(
                 By.xpath("//td[span[contains(text(),'" + patientCode + "')]]/parent::tr")
-        ));
+        )));
         row.findElement(By.xpath(".//button[@title='Check In']")).click();
     }
 
@@ -384,36 +417,36 @@ public class ConfigurateAge extends LoginAndLocationTest {
             }
 
             Thread.sleep(THREAD_SECONDS);
-            WebElement addButton = wait.until(ExpectedConditions.elementToBeClickable(
+            WebElement addButton = wait.until(ExpectedConditions.refreshed(ExpectedConditions.elementToBeClickable(
                     By.id("current-admission-prescribedAdd")
-            ));
+            )));
             addButton.click();
 
 
-            WebElement medicineInput = wait.until(ExpectedConditions.elementToBeClickable(
+            WebElement medicineInput = wait.until(ExpectedConditions.refreshed(ExpectedConditions.elementToBeClickable(
                     By.xpath("//input[@placeholder='Enter Medicine']")
-            ));
+            )));
             medicineInput.sendKeys("Sulphasala");
 
             Thread.sleep(THREAD_SECONDS); // Adjust if necessary
 
-            WebElement selectedOption = wait.until(ExpectedConditions.elementToBeClickable(
+            WebElement selectedOption = wait.until(ExpectedConditions.refreshed(ExpectedConditions.elementToBeClickable(
                     By.xpath("//mat-option//span[contains(text(),'Sulphasalazine Tablet  50 50 Tablets')]")
-            ));
+            )));
             selectedOption.click();
 
 
-            WebElement quantityInput = wait.until(ExpectedConditions.elementToBeClickable(
+            WebElement quantityInput = wait.until(ExpectedConditions.refreshed(ExpectedConditions.elementToBeClickable(
                     By.xpath("//input[@type='number' and @title='Quantity']")
-            ));
+            )));
 
             quantityInput.clear();
             quantityInput.sendKeys("10");
 
 
-            WebElement saveCloseButton = wait.until(ExpectedConditions.elementToBeClickable(
+            WebElement saveCloseButton = wait.until(ExpectedConditions.refreshed(ExpectedConditions.elementToBeClickable(
                     By.xpath("//button[contains(text(), 'Save & Close')]")
-            ));
+            )));
 
             saveCloseButton.click();
 
@@ -432,23 +465,23 @@ public class ConfigurateAge extends LoginAndLocationTest {
 
 
         // Wait for the row containing "SharmaA"
-        WebElement row = wait.until(ExpectedConditions.presenceOfElementLocated(
+        WebElement row = wait.until(ExpectedConditions.refreshed(ExpectedConditions.presenceOfElementLocated(
                 By.xpath("//tr[td/span[contains(text(),'" + patientCode + "')]]")
-        ));
+        )));
 
         WebElement billButton = row.findElement(By.xpath(".//button[@title='Bill']"));
 
-        wait.until(ExpectedConditions.elementToBeClickable(billButton)).click();
+        wait.until(ExpectedConditions.refreshed(ExpectedConditions.elementToBeClickable(billButton))).click();
 
 
         threadTimer(3000);
         // Wait for the "Generate Bill" button to be present
-        WebElement generateBillButton = wait.until(ExpectedConditions.presenceOfElementLocated(
+        WebElement generateBillButton = wait.until(ExpectedConditions.refreshed(ExpectedConditions.presenceOfElementLocated(
                 By.xpath("//button[contains(text(),'Generate Bill')]")
-        ));
+        )));
 
 
-        wait.until(ExpectedConditions.elementToBeClickable(generateBillButton)).click();
+        wait.until(ExpectedConditions.refreshed(ExpectedConditions.elementToBeClickable(generateBillButton))).click();
 
         System.out.println("Generate Bill button clicked successfully.");
 
@@ -497,13 +530,13 @@ public class ConfigurateAge extends LoginAndLocationTest {
 
                 // ✅ Step 2: Find and click the dropdown inside this row
                 WebElement dropdownIcon = row.findElement(By.xpath(".//span[contains(@class,'ti-angle-double-down')]"));
-                wait.until(ExpectedConditions.elementToBeClickable(dropdownIcon)).click();
+                wait.until(ExpectedConditions.refreshed(ExpectedConditions.elementToBeClickable(dropdownIcon))).click();
                 System.out.println("Dropdown icon clicked successfully.");
 
                 // ✅ Step 3: Wait for Prescription option to appear and scroll into view
-                WebElement prescriptionOption = wait.until(ExpectedConditions.presenceOfElementLocated(
+                WebElement prescriptionOption = wait.until(ExpectedConditions.refreshed(ExpectedConditions.presenceOfElementLocated(
                         By.xpath("//td[span[contains(text(),'" + patientCode + "')]]/following-sibling::td//span[contains(text(),'Prescription')]")
-                ));
+                )));
 
                 // ✅ Scroll into view (in case it's hidden)
                 ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);", prescriptionOption);
@@ -511,7 +544,7 @@ public class ConfigurateAge extends LoginAndLocationTest {
 
                 // ✅ Attempt to click, fallback to JS click if necessary
                 try {
-                    wait.until(ExpectedConditions.elementToBeClickable(prescriptionOption)).click();
+                    wait.until(ExpectedConditions.refreshed(ExpectedConditions.elementToBeClickable(prescriptionOption))).click();
                 } catch (ElementClickInterceptedException e) {
                     System.out.println("Click intercepted, using JS click.");
                     ((JavascriptExecutor) driver).executeScript("arguments[0].click();", prescriptionOption);
@@ -528,7 +561,7 @@ public class ConfigurateAge extends LoginAndLocationTest {
                 if (!nextPageButton.isEmpty()) {
                     System.out.println("Patient not found, navigating to the next page...");
                     nextPageButton.get(0).click();
-                    wait.until(ExpectedConditions.stalenessOf(nextPageButton.get(0))); // Wait for page reload
+                    wait.until(ExpectedConditions.refreshed(ExpectedConditions.stalenessOf(nextPageButton.get(0)))); // Wait for page reload
                 } else {
                     System.out.println("Patient not found on any page.");
                     return null; // Exit if no more pages
@@ -541,9 +574,9 @@ public class ConfigurateAge extends LoginAndLocationTest {
 
     private void fillInputField(WebDriver driver, WebDriverWait wait, String formControlName, String value) {
 
-        WebElement inputField = wait.until(ExpectedConditions.visibilityOfElementLocated(
+        WebElement inputField = wait.until(ExpectedConditions.refreshed(ExpectedConditions.visibilityOfElementLocated(
                 By.xpath("//input[@formcontrolname='" + formControlName + "']")
-        ));
+        )));
         inputField.clear();
         inputField.sendKeys(value);
         System.out.println("Filled " + formControlName + " with value: " + value);
@@ -558,20 +591,30 @@ public class ConfigurateAge extends LoginAndLocationTest {
     }
 
     private void selectFromMatSelectDropdown(WebDriver driver, WebDriverWait wait, String matSelectId, String optionText) {
-        try {
-            Thread.sleep(1000);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
-        wait = new WebDriverWait(driver, Duration.ofSeconds(45));
-        WebElement matSelect = wait.until(ExpectedConditions.elementToBeClickable(By.id(matSelectId)));
-        matSelect.click();
 
-        WebElement cityOption = wait.until(ExpectedConditions.elementToBeClickable(
-                By.xpath("//span[contains(text(), '" + optionText + "')]")
-        ));
-        cityOption.click();
-        System.out.println("Selected option: " + optionText);
+        try {
+            // Step 1: Click the dropdown to open it
+            WebElement matDropdown = wait.until(ExpectedConditions.elementToBeClickable(
+                    By.xpath("//span[contains(text(), '" + matSelectId + "')]/ancestor::div[contains(@class, 'mat-select-trigger')]")
+            ));
+            ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);", matDropdown);
+            ((JavascriptExecutor) driver).executeScript("arguments[0].click();", matDropdown);
+
+            // Step 2: Wait for dropdown options to appear (Angular uses overlay for options)
+            WebElement option = wait.until(ExpectedConditions.visibilityOfElementLocated(
+                    By.xpath("//mat-option//span[contains(text(), '" + optionText + "')]")
+            ));
+
+            // Step 3: Click the desired option
+            ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);", option);
+            ((JavascriptExecutor) driver).executeScript("arguments[0].click();", option);
+
+            System.out.println("✅ Selected option: " + optionText);
+
+        } catch (TimeoutException e) {
+            System.out.println("❌ Failed to select option: " + optionText);
+            throw new RuntimeException("Dropdown selection failed", e);
+        }
     }
 
 
@@ -594,13 +637,13 @@ public class ConfigurateAge extends LoginAndLocationTest {
     }
 
     private void pharmacyViewBill(String patientName, String pharmacy) {
-        WebElement row = wait.until(ExpectedConditions.presenceOfElementLocated(
+        WebElement row = wait.until(ExpectedConditions.refreshed(ExpectedConditions.presenceOfElementLocated(
                 By.xpath("//tr[td/span[contains(text(),'" + patientCode + "')]]")
-        ));
+        )));
 
         WebElement billButton = row.findElement(By.xpath(".//button[@title='View']"));
 
-        wait.until(ExpectedConditions.elementToBeClickable(billButton)).click();
+        wait.until(ExpectedConditions.refreshed(ExpectedConditions.elementToBeClickable(billButton))).click();
 
         threadTimer(5000);
         boolean isAgeFound = false;
@@ -610,9 +653,9 @@ public class ConfigurateAge extends LoginAndLocationTest {
         while (!isAgeFound) {
             try {
                 // Wait for the age element to be present
-                WebElement ageGenderElement = wait.until(ExpectedConditions.presenceOfElementLocated(
+                WebElement ageGenderElement = wait.until(ExpectedConditions.refreshed(ExpectedConditions.presenceOfElementLocated(
                         By.xpath("//span[contains(text(), 'Age | Gender')]/following-sibling::span[4]")
-                ));
+                )));
 
                 // Highlight and scroll to the element
                 JavascriptExecutor js = (JavascriptExecutor) driver;
@@ -624,19 +667,18 @@ public class ConfigurateAge extends LoginAndLocationTest {
                 System.out.println("Check: -- " + ageText);
 
                 // Check for Age format
-                if (ageText.contains("M")) {
+                if (ageText.contains("M") || ageText.contains("Y")) {
                     System.out.println("Age In Month");
                     isAgeFound = true;
-                } else if (ageText.contains("Y")) {
+                } else if (!ageText.contains("M") || !ageText.contains("Y")) {
                     System.out.println("Age In Year");
-                    isAgeFound = true;
+                    getIsAgeInYear = true;
                 } else {
                     System.out.println("Age format not found, retrying...");
-
                     // Close and retry
-                    WebElement closeButton = wait.until(ExpectedConditions.elementToBeClickable(
+                    WebElement closeButton = wait.until(ExpectedConditions.refreshed(ExpectedConditions.elementToBeClickable(
                             By.xpath("//button[contains(text(), 'Close')]")
-                    ));
+                    )));
                     closeButton.click();
                     Thread.sleep(3000); // Pause before retrying
                 }
