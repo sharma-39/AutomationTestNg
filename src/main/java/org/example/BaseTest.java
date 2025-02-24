@@ -8,9 +8,7 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
-import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterSuite;
-import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeSuite;
 
 import java.io.IOException;
@@ -31,7 +29,7 @@ public class BaseTest {
 
     protected   List<String> ageLabel =new ArrayList<>();
 
-    protected  Boolean getIsAgeInYear=false;
+    protected  Boolean isAgeInYear =false;
     protected List<UserDetails> userDetails = new ArrayList<>();
 
     @BeforeSuite
@@ -44,7 +42,7 @@ public class BaseTest {
         }
         driver.manage().window().maximize();
         driver.get("http://18.215.63.38:8095/#/auth/login");
-        wait = new WebDriverWait(driver, Duration.ofSeconds(45));
+        wait = new WebDriverWait(driver, Duration.ofSeconds(55));
 
         String jsonData = null;
         try {
@@ -90,6 +88,14 @@ public class BaseTest {
                 ExpectedConditions.elementToBeClickable(By.xpath("//a[contains(text(),'" + panel + "')]"))
         );
 
+        JavascriptExecutor js = (JavascriptExecutor) driver;
+        js.executeScript("arguments[0].style.border='3px solid red';", panelClick); // 🔴 Red border highlight
+        js.executeScript("arguments[0].scrollIntoView(true);", panelClick);        // 🔄 Scroll into view
+        System.out.println("Highlighted Panel: " + panel);
+
+
+        js.executeScript("arguments[0].style.border='';", panelClick); // ❌ Remove border
+        System.out.println("Cleared highlight for Panel: " + panel);
 
         panelClick.click();
     }
