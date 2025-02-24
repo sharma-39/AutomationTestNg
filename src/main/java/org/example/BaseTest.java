@@ -9,7 +9,9 @@ import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.testng.annotations.AfterClass;
+import org.testng.annotations.AfterSuite;
 import org.testng.annotations.BeforeClass;
+import org.testng.annotations.BeforeSuite;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -27,10 +29,12 @@ public class BaseTest {
 
     protected  Boolean isAgeInMonth=false;
 
+    protected   List<String> ageLabel =new ArrayList<>();
+
     protected  Boolean getIsAgeInYear=false;
     protected List<UserDetails> userDetails = new ArrayList<>();
 
-    @BeforeClass
+    @BeforeSuite
     public void setUp() {
 
         System.setProperty("webdriver.chrome.driver", "D:\\chromedriver-win64\\chromedriver.exe");
@@ -56,6 +60,9 @@ public class BaseTest {
         userDetails.add(new UserDetails("scott", "scott"));
 
 //        userDetails.add(new UserDetails("unknownusernamessssssssssssssss", "Admin@123"));
+
+        ageLabel.add("Age In Years And Months");
+        ageLabel.add("Age In Years");
 
     }
     public void threadTimer(long seconds) {
@@ -86,7 +93,7 @@ public class BaseTest {
 
         panelClick.click();
     }
-    @AfterClass
+    @AfterSuite
     public void tearDown() {
 //        if (driver != null && isLoginSuccessful) {
 //            driver.quit();

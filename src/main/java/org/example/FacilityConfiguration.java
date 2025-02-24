@@ -79,7 +79,7 @@ public class FacilityConfiguration extends LoginAndLocationTest {
 //        }
 //    }
 
-    private void menuPanelClick(String panel) {
+    protected void menuPanelClick(String panel) {
         threadTimer(3000);
         WebElement menuButton = driver.findElement(By.id("mega-menu-nav-btn"));
         if (menuButton.isDisplayed()) {

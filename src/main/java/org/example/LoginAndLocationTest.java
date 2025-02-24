@@ -64,7 +64,6 @@ public class LoginAndLocationTest extends BaseTest {
 
                     if (resultText.contains("Select Your Location")) {
                         System.out.println("Login Successfully");
-                        System.out.println("clearrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr");
                         DBUtil.userNameValidation(userDetails.get(i).getUserName(), userDetails.get(i).getPassword(), "Login Successfully", "Success");
 
                         isLoginSuccessful=true;
