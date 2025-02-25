@@ -5,6 +5,7 @@ import org.openqa.selenium.*;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
+import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import java.awt.*;
@@ -36,8 +37,6 @@ public class ConfigurateAge extends LoginAndLocationTest {
     //    @Test(priority = 4, dependsOnMethods = {"testLogin"})
     public void facilityConfigAge() {
 
-        ageInYearConfig = false;
-        ageInMonthConfig = false;
         patientLabelCaption=null;
         JSONObject patient = tempPatientData.getJSONObject(patientIncrement);
         if (isLoginSuccessful) {
@@ -68,26 +67,8 @@ public class ConfigurateAge extends LoginAndLocationTest {
                     ((JavascriptExecutor) driver).executeScript("arguments[0].click();", radioButton);
                     configureSaveButtonClick(); // Save after clicking
 
-                    // 🔄 Update boolean flags based on selection
-                    if (labelText.contains("Age In Years And Months")) {
-                        ageInMonthConfig = true;
-                        ageInYearConfig = false;
-                    } else if (labelText.contains("Age In Years")) {
-                        ageInYearConfig = true;
-                        ageInMonthConfig = false;
-                    }
+                }
 
-                    System.out.println("Config Updated: AgeInMonth -> " + ageInMonthConfig + ", AgeInYear -> " + ageInYearConfig);
-                }
-                else if (labelText.contains(labelText) && radioButton.isSelected()) {
-                    if (labelText.contains("Age In Years And Months")) {
-                        ageInMonthConfig = true;
-                        ageInYearConfig = false;
-                    } else if (labelText.contains("Age In Years")) {
-                        ageInYearConfig = true;
-                        ageInMonthConfig = false;
-                    }
-                }
 
             }
 
@@ -108,10 +89,12 @@ public class ConfigurateAge extends LoginAndLocationTest {
     public void processtempPatientData() throws IOException, InterruptedException {
 
         threadTimer(3000);
+        System.out.println("Processing automate data logined"+isLoginSuccessful);
         if (isLoginSuccessful) {
 
             List<String> logSummaryList = new ArrayList<>();
             for (int j = 0; j < ageLabel.size(); j++) {
+
 
                 StringBuilder logSummary = new StringBuilder();
                 labelTextAge = ageLabel.get(j);
@@ -128,7 +111,7 @@ public class ConfigurateAge extends LoginAndLocationTest {
                 String log = "";
                 for (int i = 11 + j; i <= 11 + j; i++) {
                     patientIncrement = i;
-
+                    namePatientAndAge(ageLabel.get(j));
 
                     patientRegisterTest();
                     logSummary.append("✅ Patient Registered: ").append(patientCode).append(" | ");
@@ -178,6 +161,22 @@ public class ConfigurateAge extends LoginAndLocationTest {
             for (int l = 0; l < logSummaryList.size(); l++) {
                 System.out.println("Scanerio " + l + "✅" + logSummaryList);
             }
+        }
+    }
+
+    private void namePatientAndAge(String ageLabel) {
+
+        if (ageLabel.contains("Age In Years And Months")) {
+            ageInMonthConfig = true;
+            ageInYearConfig = false;
+
+        } else if (ageLabel.contains("Age In Years")) {
+            ageInYearConfig = true;
+            ageInMonthConfig = false;
+        }
+        else {
+            ageInYearConfig=false;
+            ageInMonthConfig=false;
         }
     }
 
@@ -248,27 +247,62 @@ public class ConfigurateAge extends LoginAndLocationTest {
             WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
             selectFromMatSelectDropdown(driver, wait, "Select", "Chennai");
 
+
             patientFormSubmit(driver);
 
-            WebElement successMessage = wait.until(ExpectedConditions.refreshed(ExpectedConditions.visibilityOfElementLocated(
-                    By.xpath("//div[contains(@class, 'container-2')]/p[contains(text(), 'Registered Successfully')]")
-            )));
+            //500 error handle and failed backend connection and deployment scerio etc
+            String messageText = handleRuntimeError("Patient Registeration");
 
-            String messageText = successMessage.getText();
-            System.out.println("Fetched Message: " + messageText);
+            if(messageText!=null && !messageText.isEmpty()) {
+                System.out.println("Fetched Message: " + messageText);
 
-            if (messageText.contains("New Patient")) {
-                patientCode = messageText.replace("New Patient", "")
-                        .replace("Registered Successfully", "")
-                        .trim();
+                if (messageText.contains("New Patient")) {
+                    patientCode = messageText.replace("New Patient", "")
+                            .replace("Registered Successfully", "")
+                            .trim();
 
-                System.out.println("Extracted Code: " + patientCode);
-            } else {
-                patientCode = null;
+                    System.out.println("Extracted Code: " + patientCode);
+                } else {
+                    patientCode = null;
+                }
+            }
+            else {
+                Assert.fail("❌ Failed to Patient Registered");
             }
         } catch (Exception e) {
             patientCode = null;
         }
+    }
+
+    private String handleRuntimeError(String type) {
+        WebElement resultElement = wait.until(driver -> {
+            List<By> locators = Arrays.asList(
+                    By.xpath("//div[contains(@class, 'container-2')]/p[contains(text(),'')]"),
+                    By.xpath("//p[normalize-space(text())='Error 403']"),
+                    By.xpath("//p[contains(text(),'Error 0')]"),
+                    By.xpath("//p[contains(text(),'Error 2')]"),
+                    By.xpath("//div[contains(@class, 'container-2')]/p[contains(text(),'Something Went Wrong')]")
+            );
+
+            for (By locator : locators) {
+                List<WebElement> elements = driver.findElements(locator);
+                if (!elements.isEmpty() && elements.get(0).isDisplayed()) {
+                    System.out.println("Elemenets"+elements.toString());
+                    return elements.get(0);
+                }
+            }
+            return null;
+        });
+
+        String messageText = resultElement.getText();
+        if(messageText!=null && !messageText.isEmpty())
+        {
+            return messageText;
+        }
+        else{
+            Assert.fail("❌ Error"+type);
+        }
+        return messageText;
     }
 
     private void patientFormSubmit(WebDriver driver) {
@@ -292,7 +326,6 @@ public class ConfigurateAge extends LoginAndLocationTest {
     private void createAppointment(String name, String admissionType, String doctorName, String scanType, String
             panel) {
         menuPanelClick(panel);
-
 
         WebElement patientSearchLabel = wait.until(ExpectedConditions.refreshed(ExpectedConditions.visibilityOfElementLocated(
                 By.xpath("//label[contains(text(), 'Patient Search')]")
@@ -373,6 +406,7 @@ public class ConfigurateAge extends LoginAndLocationTest {
             // Get all <p> elements inside the container
             // Locate the <p> element containing the message
             wait = new WebDriverWait(driver, Duration.ofSeconds(5));
+
 
             WebElement resultElement = wait.until(driver -> {
                 List<By> locators = Arrays.asList(

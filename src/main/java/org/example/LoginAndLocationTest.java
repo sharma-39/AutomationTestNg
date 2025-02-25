@@ -82,11 +82,14 @@ public class LoginAndLocationTest extends BaseTest {
                     else if(resultText.contains("Welcome"))
                     {
                         isSingleLocation=true;
+                        isLoginSuccessful=true;
                         System.out.println("Login Successfully Welcome");
                         DBUtil.userNameValidation(userDetails.get(i).getUserName(), userDetails.get(i).getPassword(), "Login Successfully", "Success");
                         break;
                     }
                     else {
+                        isSingleLocation=true;
+                        isLoginSuccessful=true;
                         System.out.println("Login Successfully");
                         DBUtil.userNameValidation(userDetails.get(i).getUserName(), userDetails.get(i).getPassword(), "Login Successfully", "Success");
                         isLoginSuccessful=true;
@@ -114,6 +117,7 @@ public class LoginAndLocationTest extends BaseTest {
 
     @Test(priority = 2, dependsOnMethods = {"testLogin"})
     public void testLocationSelection() {
+        System.out.println("Locatiion loaded"+isSingleLocation+"logged"+isLoginSuccessful);
 
         System.out.println("Location"+isSingleLocation);
         if(!isSingleLocation) {
@@ -150,6 +154,7 @@ public class LoginAndLocationTest extends BaseTest {
                                 By.xpath("//span[contains(text(),'Welcome')]"));
                         if (welcomeText.isDisplayed()) {
                             isWelcomeFound = true;
+                            isDashboardLoaded=true;
                         }
                     } catch (NoSuchElementException e) {
                         Thread.sleep(500);
@@ -165,6 +170,7 @@ public class LoginAndLocationTest extends BaseTest {
         }
         else {
             isLoginSuccessful=true;
+            isSingleLocation=true;
         }
 
     }
