@@ -26,6 +26,7 @@ public class FacilityConfiguration extends LoginAndLocationTest {
                 throw new RuntimeException(e);
             }
 
+
             WebElement ageFormatElement = driver.findElement(By.xpath("//h2[contains(text(), 'Age Format In Bill')]"));
 
 // Scroll the element into view

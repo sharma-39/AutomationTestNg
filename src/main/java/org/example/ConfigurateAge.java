@@ -22,15 +22,24 @@ public class ConfigurateAge extends LoginAndLocationTest {
     private long THREAD_SECONDS = 3000;
     static int patientIncrement = 0;
 
+    String patientLabelCaption = null;
+
+    Boolean ageInYearConfig = false;
+    Boolean ageInMonthConfig = false;
+
     static String labelTextAge = null;
     protected String patientCode;
 
     protected boolean isAppoinmentCreated = false;
 
 
-//    @Test(priority = 4, dependsOnMethods = {"testLogin"})
+    //    @Test(priority = 4, dependsOnMethods = {"testLogin"})
     public void facilityConfigAge() {
 
+        ageInYearConfig = false;
+        ageInMonthConfig = false;
+        patientLabelCaption=null;
+        JSONObject patient = tempPatientData.getJSONObject(patientIncrement);
         if (isLoginSuccessful) {
             menuPanelClick("Facility Configurations");
             try {
@@ -40,40 +49,51 @@ public class ConfigurateAge extends LoginAndLocationTest {
             }
 
             WebElement ageFormatElement = driver.findElement(By.xpath("//h2[contains(text(), 'Age Format In Bill')]"));
-
             WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
-// Scroll the element into view
+
+            // Scroll the element into view
             ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);", ageFormatElement);
 
             // Locate all radio buttons
             List<WebElement> radioButtons = driver.findElements(By.xpath("//label[contains(@class, 'fancy-radio')]/input[@type='radio']"));
 
-// Iterate over radio buttons and select the desired one
+            // Iterate over radio buttons and select the desired one
             for (WebElement radioButton : radioButtons) {
                 // Find the label text next to the radio button
                 WebElement label = radioButton.findElement(By.xpath("./following-sibling::span"));
                 String labelText = label.getText().trim();
                 System.out.println("Found Radio Button: " + labelText);
+                // Select the desired radio button based on labelTextAge
+                if (labelText.contains(labelTextAge) && !radioButton.isSelected()) {
+                    ((JavascriptExecutor) driver).executeScript("arguments[0].click();", radioButton);
+                    configureSaveButtonClick(); // Save after clicking
 
-                // Choose based on label text
-                if (labelText.contains(labelTextAge)) { // Change text if needed
-                    if (!radioButton.isSelected() && labelText.contains(labelTextAge)) {
-                        JavascriptExecutor js = (JavascriptExecutor) driver;
-                        js.executeScript("arguments[0].click();", radioButton);
-                        // Locate the 'Save' button using XPath
-                        configureSaveButtonClick();
-
+                    // 🔄 Update boolean flags based on selection
+                    if (labelText.contains("Age In Years And Months")) {
+                        ageInMonthConfig = true;
+                        ageInYearConfig = false;
+                    } else if (labelText.contains("Age In Years")) {
+                        ageInYearConfig = true;
+                        ageInMonthConfig = false;
                     }
-                } else if (labelText.contains("Age In Years")) {
-                    if (!radioButton.isSelected() && labelText.contains(labelTextAge)) {
-                        JavascriptExecutor js = (JavascriptExecutor) driver;
-                        js.executeScript("arguments[0].click();", radioButton);
-                        configureSaveButtonClick();
+
+                    System.out.println("Config Updated: AgeInMonth -> " + ageInMonthConfig + ", AgeInYear -> " + ageInYearConfig);
+                }
+                else if (labelText.contains(labelText) && radioButton.isSelected()) {
+                    if (labelText.contains("Age In Years And Months")) {
+                        ageInMonthConfig = true;
+                        ageInYearConfig = false;
+                    } else if (labelText.contains("Age In Years")) {
+                        ageInYearConfig = true;
+                        ageInMonthConfig = false;
                     }
                 }
+
             }
+
         }
     }
+
 
     private void configureSaveButtonClick() {
         WebElement saveButton = driver.findElement(By.xpath("//button[contains(text(), 'Save') and contains(@class, 'saveNdClose')]"));
@@ -99,11 +119,14 @@ public class ConfigurateAge extends LoginAndLocationTest {
                 isAgeInMonth = false;
                 isAgeInYear = false;
                 isAppoinmentCreated = false;
+                Thread.sleep(4000);
                 facilityConfigAge();
+
+
                 logSummary.append("✅ Enable: " + labelTextAge + " : ").append("|");
 
-                String log="";
-                for (int i = 71 + j; i <= 71 + j; i++) {
+                String log = "";
+                for (int i = 11 + j; i <= 11 + j; i++) {
                     patientIncrement = i;
 
 
@@ -118,6 +141,7 @@ public class ConfigurateAge extends LoginAndLocationTest {
                         logSummary.append("✅ Appointment Created: ").append(patientCode).append(" | ");
 
                         if (isAppoinmentCreated) {
+                            Thread.sleep(3000);
                             checkingAppointmentTest();
                             logSummary.append("✅ Checked In | ");
 
@@ -144,7 +168,7 @@ public class ConfigurateAge extends LoginAndLocationTest {
                             .append(isAgeInMonth ? "Age In Month ✅" : "")
                             .append(isAgeInYear ? "Age in Year ✅" : "").toString();
 
-                    DBUtil.insertScenario(logSummary.toString(),"Success");
+                    DBUtil.insertScenario(logSummary.toString(), "Success");
                 }
                 logSummaryList.add(log);
 
@@ -181,7 +205,8 @@ public class ConfigurateAge extends LoginAndLocationTest {
     public void addPrescriptionTest() throws IOException {
         if (isLoginSuccessful) {
             JSONObject patient = tempPatientData.getJSONObject(patientIncrement);
-            addPrescription(patient.getString("patientName"), "Current Admissions");
+
+            addPrescription(patient.getString("patientName"), "Current Admissions", patient.getString("prescriptionSearch"), patient.getString("prescriptionSelect"));
         }
     }
 
@@ -195,7 +220,7 @@ public class ConfigurateAge extends LoginAndLocationTest {
     public void PharmacyView() throws IOException {
         if (isLoginSuccessful) {
             JSONObject patient = tempPatientData.getJSONObject(patientIncrement);
-            pharmacyViewBill(patient.getString("patientName"), "Pharmacy");
+            pharmacyViewBill(patient.getString("patientName"), "Pharmacy", patient.getString("patientAge"), patient.getString("gender"));
         }
     }
 
@@ -399,13 +424,12 @@ public class ConfigurateAge extends LoginAndLocationTest {
         row.findElement(By.xpath(".//button[@title='Check In']")).click();
     }
 
-    private void addPrescription(String name, String panel) {
+    private void addPrescription(String name, String panel, String prescriptionSearch, String prescriptionSelect) {
         menuPanelClick(panel);
         try {
             Thread.sleep(3000);
-            // Wait for the pagination element to be present
 
-            WebDriverWait longWait = new WebDriverWait(driver, Duration.ofSeconds(60)); // Increase timeout
+            WebDriverWait longWait = new WebDriverWait(driver, Duration.ofSeconds(60));
             JavascriptExecutor js = (JavascriptExecutor) driver;
             String pageText = (String) js.executeScript(
                     "return document.querySelector('li.small-screen')?.textContent.trim();"
@@ -432,46 +456,82 @@ public class ConfigurateAge extends LoginAndLocationTest {
             }
 
             Thread.sleep(THREAD_SECONDS);
-            WebElement addButton = wait.until(ExpectedConditions.refreshed(ExpectedConditions.elementToBeClickable(
-                    By.id("current-admission-prescribedAdd")
-            )));
-            addButton.click();
 
 
-            WebElement medicineInput = wait.until(ExpectedConditions.refreshed(ExpectedConditions.elementToBeClickable(
-                    By.xpath("//input[@placeholder='Enter Medicine']")
-            )));
-            medicineInput.sendKeys("Sulphasala");
+            List<String> search = Arrays.asList(prescriptionSearch.split(","));
+            List<String> select = Arrays.asList(prescriptionSelect.split(","));
 
-            Thread.sleep(THREAD_SECONDS); // Adjust if necessary
+            for (int i = 0; i < search.size(); i++) {
+                Boolean isSelected = false;
+                System.out.println("Search item:==" + search.get(i));
+                System.out.println("Selected item:==" + select.get(i));
+                while (!isSelected) {
+                    wait = new WebDriverWait(driver, Duration.ofSeconds(30));
+                    WebElement addButton = wait.until(ExpectedConditions.refreshed(ExpectedConditions.elementToBeClickable(
+                            By.id("current-admission-prescribedAdd")
+                    )));
+                    addButton.click();
 
-            WebElement selectedOption = wait.until(ExpectedConditions.refreshed(ExpectedConditions.elementToBeClickable(
-                    By.xpath("//mat-option//span[contains(text(),'Sulphasalazine Tablet  50 50 Tablets')]")
-            )));
-            selectedOption.click();
+                    WebElement medicineInput = wait.until(ExpectedConditions.refreshed(ExpectedConditions.elementToBeClickable(
+                            By.xpath("//input[@placeholder='Enter Medicine']")
+                    )));
+                    medicineInput.click();
+                    medicineInput.clear();
+                    medicineInput.sendKeys(search.get(i));
 
+                    Thread.sleep(THREAD_SECONDS); // Give time for autocomplete
 
-            WebElement quantityInput = wait.until(ExpectedConditions.refreshed(ExpectedConditions.elementToBeClickable(
-                    By.xpath("//input[@type='number' and @title='Quantity']")
-            )));
+                    // Print all available options for debugging
+                    List<WebElement> options = driver.findElements(By.xpath("//mat-option//span[@class='mat-option-text']"));
+                    System.out.println("" + options.size());
+                    if (options.size() != 1) {
+                        for (WebElement option : options) {
+                            String optionText = option.getText().trim();
+                            System.out.println("Found option: " + optionText);
 
-            quantityInput.clear();
-            quantityInput.sendKeys("10");
+                            // Exact match selection
+                            if (optionText.contains(select.get(i))) {
+                                wait.until(ExpectedConditions.visibilityOf(option));
+                                wait.until(ExpectedConditions.elementToBeClickable(option));
+                                // Use JS click
+                                js = (JavascriptExecutor) driver;
+                                js.executeScript("arguments[0].scrollIntoView(true);", option); // Scroll to the element
+                                Thread.sleep(500); // Slight delay to ensure stability
+                                js.executeScript("arguments[0].click();", option);
+                                System.out.println("✅ Selected via JS Click: " + optionText);
+                                isSelected = true;
+                                break;
+                            }
+                        }
+                    } else {
+                        WebElement option = options.get(0);
+                        js = (JavascriptExecutor) driver;
+                        js.executeScript("arguments[0].scrollIntoView(true);", option); // Scroll to the element
+                        Thread.sleep(500); // Slight delay to ensure stability
+                        js.executeScript("arguments[0].click();", option);
+                        isSelected = true;
+                    }
+                }
 
+                if (isSelected) {
+                    WebElement quantityInput = wait.until(ExpectedConditions.refreshed(ExpectedConditions.elementToBeClickable(
+                            By.xpath("//input[@type='number' and @title='Quantity']")
+                    )));
+                    quantityInput.clear();
+                    quantityInput.sendKeys("10");
+                }
+            }
 
             WebElement saveCloseButton = wait.until(ExpectedConditions.refreshed(ExpectedConditions.elementToBeClickable(
                     By.xpath("//button[contains(text(), 'Save & Close')]")
             )));
-
             saveCloseButton.click();
 
-            System.out.println("Successfully created Prescription");
-
+            System.out.println("✅ Successfully created Prescription");
 
         } catch (Exception e) {
             e.printStackTrace();
         }
-
     }
 
     private void pharmacyBill(String name, String panel) {
@@ -535,27 +595,30 @@ public class ConfigurateAge extends LoginAndLocationTest {
 
         boolean isFound = false;
 
-        WebElement pageNo = wait.until(ExpectedConditions.elementToBeClickable(
-                By.xpath("//ul[contains(@class, 'ngx-pagination')]//li/a/span[text()='" + page + "']")
-        ));
+        if (page != 1) {
+            WebElement pageNo = wait.until(ExpectedConditions.elementToBeClickable(
+                    By.xpath("//ul[contains(@class, 'ngx-pagination')]//li/a/span[text()='" + page + "']")
+            ));
 
-        // ✅ Scroll into view (in case it's not visible)
-        ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);", pageNo);
-        try {
-            Thread.sleep(500); // Small delay for UI adjustment
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+            // ✅ Scroll into view (in case it's not visible)
+            ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);", pageNo);
+            try {
+                Thread.sleep(500); // Small delay for UI adjustment
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+
+            // ✅ Click the Page 3 button
+            pageNo.click();
+            System.out.println("➡️ Successfully navigated to Page " + pageNo);
+
+
+            // ✅ Optional: Wait for the content of page 3 to load (Example: wait for a specific element)
+            wait.until(ExpectedConditions.textToBePresentInElementLocated(
+                    By.xpath("//li[contains(@class, 'current')]//span[text()='" + page + "']"),
+                    String.valueOf(page)
+            ));
         }
-
-        // ✅ Click the Page 3 button
-        pageNo.click();
-        System.out.println("➡️ Successfully navigated to Page "+pageNo);
-
-        // ✅ Optional: Wait for the content of page 3 to load (Example: wait for a specific element)
-        wait.until(ExpectedConditions.textToBePresentInElementLocated(
-                By.xpath("//li[contains(@class, 'current')]//span[text()='" + page + "']"),
-                String.valueOf(page)
-        ));
         System.out.println("✅ Page  is now active" + page);
         while (!isFound) {
             try {
@@ -690,101 +753,96 @@ public class ConfigurateAge extends LoginAndLocationTest {
         }
     }
 
-    private void pharmacyViewBill(String patientName, String pharmacy) {
+    private void pharmacyViewBill(String patientName, String pharmacy, String age, String gender) {
 
-
+        System.out.println("Age in Year" + ageInYearConfig + "");
+        System.out.println("Age in Month" + ageInYearConfig + "");
+        System.out.println("Caption:---" + patientLabelCaption);
         wait = new WebDriverWait(driver, Duration.ofSeconds(65));
-        WebElement row = wait.until(ExpectedConditions.refreshed(ExpectedConditions.presenceOfElementLocated(
-                By.xpath("//tr[td/span[contains(text(),'" + patientCode + "')]]")
-        )));
-
-        WebElement billButton = row.findElement(By.xpath(".//button[@title='View']"));
-
-        wait.until(ExpectedConditions.refreshed(ExpectedConditions.elementToBeClickable(billButton))).click();
+        JavascriptExecutor js = (JavascriptExecutor) driver;
 
 
-
-        threadTimer(5000);
-        boolean isAgeFound = false;
-        isAgeInMonth = false;
-        isAgeInYear = false;
-
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10)); // Adjust timeout as needed
-
-        while (!isAgeFound) {
-            try {
-                // Wait for the age element to be present
-                WebElement ageGenderElement = wait.until(ExpectedConditions.refreshed(ExpectedConditions.presenceOfElementLocated(
-                        By.xpath("//span[contains(text(), 'Age | Gender')]/following-sibling::span[4]")
-                )));
-
-                // Highlight and scroll to the element
-                JavascriptExecutor js = (JavascriptExecutor) driver;
-                js.executeScript("arguments[0].style.border='3px solid red';", ageGenderElement);
-                js.executeScript("arguments[0].scrollIntoView(true);", ageGenderElement);
-
-                // Get the age text
-                String ageText = ageGenderElement.getText().trim();
-                System.out.println("Check: -- " + ageText);
-
-                // Check for Age format
-
-                if (ageText.contains("M") || ageText.contains("Y")) {
-                    isAgeFound = true;
-                    System.out.println(ageText + " → Age In Month ✅");
-                    isAgeInMonth = true;
-                } else if (!ageText.contains("M") && !ageText.contains("Y")) {
-                    isAgeFound = true;
-                    System.out.println(ageText + " → Age In Year ✅");
-                    isAgeInYear = true;
-                }
-                else {
-
-                    wait = new WebDriverWait(driver, Duration.ofSeconds(30));
-
-                    billButton = row.findElement(By.xpath(".//button[@title='View']"));
-
-                    wait.until(ExpectedConditions.refreshed(ExpectedConditions.elementToBeClickable(billButton))).click();
-                    // Close and retry
-                    WebElement closeButton = wait.until(ExpectedConditions.refreshed(ExpectedConditions.elementToBeClickable(
-                            By.xpath("//button[contains(text(), 'Close')]")
-                    )));
-                    closeButton.click();
-                    Thread.sleep(3000); // Pause before retrying
-                }
-
-            } catch (StaleElementReferenceException | NoSuchElementException e) {
-                System.out.println("Element not stable yet, retrying...");
-                try {
-                    Thread.sleep(2000); // Wait before re-trying
-                } catch (InterruptedException ex) {
-                    throw new RuntimeException(ex);
-                }
-            } catch (TimeoutException te) {
-
-                wait = new WebDriverWait(driver, Duration.ofSeconds(30));
-
-                billButton = row.findElement(By.xpath(".//button[@title='View']"));
-
-                wait.until(ExpectedConditions.refreshed(ExpectedConditions.elementToBeClickable(billButton))).click();
-                System.out.println("Timeout waiting for age element, retrying...");
-
-                try {
-                    Thread.sleep(2000);
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
-            } catch (Exception ex) {
-                System.out.println("Unexpected error: " + ex.getMessage());
-                break; // Exit if unknown error occurs
-            }
+        if (ageInMonthConfig) {
+            patientLabelCaption = age + "Y | " + gender;
+        } else if (ageInYearConfig) {
+            patientLabelCaption = age + " | " + gender;
         }
 
+        System.out.println("Updated Patient Label: " + patientLabelCaption);
+        try {
+            boolean isViewClicked = false;
 
-// Optional final close after success
-        WebElement closeButton = driver.findElement(By.xpath("//button[contains(text(), 'Close')]"));
-        closeButton.click();
-        threadTimer(4000);
+            // 🟢 Loop until "View" button clicks successfully
+            while (!isViewClicked) {
+                try {
+                    // 🔄 Refresh Patient Row before each retry
+                    WebElement row = wait.until(ExpectedConditions.presenceOfElementLocated(
+                            By.xpath("//tr[td/span[contains(text(),'" + patientCode + "')]]")
+                    ));
+
+                    WebElement billButton = wait.until(ExpectedConditions.elementToBeClickable(
+                            row.findElement(By.xpath(".//button[@title='View']"))
+                    ));
+
+                    // ✅ JS Click for reliability
+                    js.executeScript("arguments[0].click();", billButton);
+                    System.out.println("✅ 'View' button clicked");
+                    isViewClicked = true; // Exit loop after success
+                    threadTimer(3000); // Small delay after click
+                    // 🟢 Proceed to find Age
+                    boolean isAgeFound = false;
+                    while (!isAgeFound) {
+                        try {
+                            WebElement ageGenderElement = wait.until(ExpectedConditions.visibilityOfElementLocated(
+                                    By.xpath("//span[contains(text(), '" + patientLabelCaption + "')]/following-sibling::span[4]")
+                            ));
+
+                            // Highlight and scroll
+                            js.executeScript("arguments[0].style.border='3px solid green';", ageGenderElement);
+                            js.executeScript("arguments[0].scrollIntoView(true);", ageGenderElement);
+
+                            String ageText = ageGenderElement.getText().trim();
+                            System.out.println("Check Age: " + ageText);
+
+                            // ✅ Age Check
+                            if (ageText.contains("M") || ageText.contains("Y")) {
+                                System.out.println(ageText + " → Age In Month ✅");
+                                isAgeInMonth = true;
+                            } else {
+                                System.out.println(ageText + " → Age In Year ✅");
+                                isAgeInYear = true;
+                            }
+
+                            isAgeFound = true; // Age found, exit loop
+
+                        } catch (StaleElementReferenceException | NoSuchElementException e) {
+                            System.out.println("⚠️ Age element not stable, retrying...");
+                            Thread.sleep(2000);
+                        } catch (TimeoutException te) {
+                            System.out.println("⚠️ Timeout on age search, retrying 'View' click...");
+                            isViewClicked = false; // Retry "View" if age fails
+                            break;
+                        }
+                    }
+
+                } catch (ElementClickInterceptedException | StaleElementReferenceException e) {
+                    System.out.println("⚠️ 'View' click failed, retrying...");
+                    Thread.sleep(2000); // Retry after short wait
+                }
+            }
+
+            // ✅ Close the popup after success
+            WebElement closeButton = wait.until(ExpectedConditions.elementToBeClickable(
+                    By.xpath("//button[contains(text(), 'Close')]")
+            ));
+
+            js.executeScript("arguments[0].click();", closeButton);
+            System.out.println("✅ Close button clicked via JS");
+            threadTimer(3000);
+
+        } catch (Exception ex) {
+            System.out.println("❌ Unexpected error: " + ex.getMessage());
+        }
 
     }
 

@@ -22,6 +22,7 @@ public class BaseTest {
     protected WebDriver driver;
     protected WebDriverWait wait;
     protected boolean isLoginSuccessful = false;
+    protected boolean isSingleLocation = false;
     protected boolean isDashboardLoaded = false;
     protected JSONArray tempPatientData;
 
@@ -35,18 +36,22 @@ public class BaseTest {
     @BeforeSuite
     public void setUp() {
 
+        String env = ConfigReader.getProperty("env");
+        String baseUrl = ConfigReader.getProperty("url." + env);
+
         System.setProperty("webdriver.chrome.driver", "D:\\chromedriver-win64\\chromedriver.exe");
 
         if (driver == null) {
             driver = new ChromeDriver();
         }
         driver.manage().window().maximize();
-        driver.get("http://18.215.63.38:8095/#/auth/login");
+
+        driver.get(baseUrl);
         wait = new WebDriverWait(driver, Duration.ofSeconds(55));
 
         String jsonData = null;
         try {
-            jsonData = new String(Files.readAllBytes(Paths.get("src/test/resources/patients.json")));
+            jsonData = new String(Files.readAllBytes(Paths.get("src/test/resources/testing_data_dev.json")));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

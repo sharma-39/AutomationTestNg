@@ -38,10 +38,9 @@ public class LoginAndLocationTest extends BaseTest {
                 loginButton.click();
 
 
-
-
                resultElement = wait.until(driver -> {
                     List<By> locators = Arrays.asList(
+                            By.xpath("//span[text()='Welcome']"),
                             By.xpath("//p[normalize-space(text())='Select Your Location']"),
                             By.xpath("//p[contains(text(),'Your account has been temporarily locked')]"),
                             By.xpath("//p[contains(text(),'Username or Password entered is incorrect')]"),
@@ -80,6 +79,13 @@ public class LoginAndLocationTest extends BaseTest {
                         DBUtil.userNameValidation(userDetails.get(i).getUserName(), userDetails.get(i).getPassword(), resultText, "Failed (Attempt " + attempt + ")");
                         break;
                     }
+                    else if(resultText.contains("Welcome"))
+                    {
+                        isSingleLocation=true;
+                        System.out.println("Login Successfully Welcome");
+                        DBUtil.userNameValidation(userDetails.get(i).getUserName(), userDetails.get(i).getPassword(), "Login Successfully", "Success");
+                        break;
+                    }
                     else {
                         System.out.println("Login Successfully");
                         DBUtil.userNameValidation(userDetails.get(i).getUserName(), userDetails.get(i).getPassword(), "Login Successfully", "Success");
@@ -109,49 +115,58 @@ public class LoginAndLocationTest extends BaseTest {
     @Test(priority = 2, dependsOnMethods = {"testLogin"})
     public void testLocationSelection() {
 
-        if (!isLoginSuccessful) {
-            System.out.println("⛔ Skipping location selection as login failed.");
-            return;
-        }
+        System.out.println("Location"+isSingleLocation);
+        if(!isSingleLocation) {
 
-        System.out.println("✅ Proceeding to Location Selection");
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(40));
-
-        try {
-            WebElement locationDropdown = wait.until(ExpectedConditions.elementToBeClickable(
-                    By.xpath("//select[@title='Location']")));
-            wait.until(ExpectedConditions.visibilityOfElementLocated(
-                    By.xpath("//select[@title='Location']//option[text()='Navaur branch']")));
-
-            Select select = new Select(locationDropdown);
-            select.selectByVisibleText("Navaur branch");
-            System.out.println("🎯 Selected 'Navaur branch'");
-
-            WebElement proceedButton = wait.until(ExpectedConditions.elementToBeClickable(
-                    By.xpath("//button[normalize-space(text())='Proceed Next']")));
-            proceedButton.click();
-            System.out.println("🚀 Clicked 'Proceed Next'");
-
-            boolean isDashboardLoaded = false;
-            boolean isWelcomeFound = false;
-            while (!isWelcomeFound) {
-                try {
-                    WebElement welcomeText = driver.findElement(
-                            By.xpath("//span[contains(text(),'Welcome')]"));
-                    if (welcomeText.isDisplayed()) {
-                        isWelcomeFound = true;
-                    }
-                } catch (NoSuchElementException e) {
-                    Thread.sleep(500);
-                }
+            if (!isLoginSuccessful) {
+                System.out.println("⛔ Skipping location selection as login failed.");
+                return;
             }
 
+            System.out.println("✅ Proceeding to Location Selection");
+            WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(40));
 
-        } catch (TimeoutException e) {
-            System.out.println("⚠️ Timeout while selecting location or loading dashboard: " + e.getMessage());
-        } catch (Exception e) {
-            System.out.println("⚠️ Unexpected error: " + e.getMessage());
+
+            try {
+                WebElement locationDropdown = wait.until(ExpectedConditions.elementToBeClickable(
+                        By.xpath("//select[@title='Location']")));
+                wait.until(ExpectedConditions.visibilityOfElementLocated(
+                        By.xpath("//select[@title='Location']//option[text()='Navaur branch']")));
+
+                Select select = new Select(locationDropdown);
+                select.selectByVisibleText("Navaur branch");
+                System.out.println("🎯 Selected 'Navaur branch'");
+
+                WebElement proceedButton = wait.until(ExpectedConditions.elementToBeClickable(
+                        By.xpath("//button[normalize-space(text())='Proceed Next']")));
+                proceedButton.click();
+                System.out.println("🚀 Clicked 'Proceed Next'");
+
+                boolean isDashboardLoaded = false;
+                boolean isWelcomeFound = false;
+                while (!isWelcomeFound) {
+                    try {
+                        WebElement welcomeText = driver.findElement(
+                                By.xpath("//span[contains(text(),'Welcome')]"));
+                        if (welcomeText.isDisplayed()) {
+                            isWelcomeFound = true;
+                        }
+                    } catch (NoSuchElementException e) {
+                        Thread.sleep(500);
+                    }
+                }
+
+
+            } catch (TimeoutException e) {
+                System.out.println("⚠️ Timeout while selecting location or loading dashboard: " + e.getMessage());
+            } catch (Exception e) {
+                System.out.println("⚠️ Unexpected error: " + e.getMessage());
+            }
         }
+        else {
+            isLoginSuccessful=true;
+        }
+
     }
 
 
