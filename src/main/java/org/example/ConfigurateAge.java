@@ -286,10 +286,16 @@ public class ConfigurateAge extends LoginAndLocationTest {
 
             for (By locator : locators) {
                 List<WebElement> elements = driver.findElements(locator);
-                if (!elements.isEmpty() && elements.get(0).isDisplayed()) {
-                    System.out.println("Elemenets"+elements.toString());
-                    return elements.get(0);
+                String messageText = elements.get(0).getText();
+                System.out.println("Element Found: " + messageText);
+
+                // Assert failure if it's an error message
+                if (messageText.contains("Error 403") || messageText.contains("Error 0") ||
+                        messageText.contains("Error 2") || messageText.contains("Something Went Wrong") || messageText.isEmpty()) {
+                    Assert.fail("Test failed due to error message: " + messageText);
                 }
+
+                return elements.get(0);
             }
             return null;
         });
