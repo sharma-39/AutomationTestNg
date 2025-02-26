@@ -11,13 +11,13 @@
     "prescriptionSelect": "Atropine Injection I.P 0 10 Amp, Quinine Tablet I.P 300mg 300mg Tablets"
   },
   {
-    "patientName": "Abigail",
+    "patientName": "Sharma",
     "patientAge": "45",
     "patientPhone": "8765432109",
     "doctorName": "Dr.Alexander A",
-    "admissionType": "Scan",
-    "gender": "Female",
-    "scanType": "Papsmear Test",
+    "admissionType": "Out Patient",
+    "gender": "Male",
+    "scanType": "",
     "prescriptionSearch": "Atropine Injection I.P,Quinine Tablet I.P",
     "prescriptionSelect": "Atropine Injection I.P 0 10 Amp, Quinine Tablet I.P 300mg 300mg Tablets"
   },

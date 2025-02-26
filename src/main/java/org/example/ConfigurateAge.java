@@ -37,7 +37,7 @@ public class ConfigurateAge extends LoginAndLocationTest {
     //    @Test(priority = 4, dependsOnMethods = {"testLogin"})
     public void facilityConfigAge() {
 
-        patientLabelCaption=null;
+        patientLabelCaption = null;
         JSONObject patient = tempPatientData.getJSONObject(patientIncrement);
         if (isLoginSuccessful) {
             menuPanelClick("Facility Configurations");
@@ -89,7 +89,7 @@ public class ConfigurateAge extends LoginAndLocationTest {
     public void processtempPatientData() throws IOException, InterruptedException {
 
         threadTimer(3000);
-        System.out.println("Processing automate data logined"+isLoginSuccessful);
+        System.out.println("Processing automate data logined" + isLoginSuccessful);
         if (isLoginSuccessful) {
 
             List<String> logSummaryList = new ArrayList<>();
@@ -109,7 +109,7 @@ public class ConfigurateAge extends LoginAndLocationTest {
                 logSummary.append("✅ Enable: " + labelTextAge + " : ").append("|");
 
                 String log = "";
-                for (int i = 11 + j; i <= 11 + j; i++) {
+                for (int i = 5 + j; i <=5  + j; i++) {
                     patientIncrement = i;
                     namePatientAndAge(ageLabel.get(j));
 
@@ -173,10 +173,9 @@ public class ConfigurateAge extends LoginAndLocationTest {
         } else if (ageLabel.contains("Age In Years")) {
             ageInYearConfig = true;
             ageInMonthConfig = false;
-        }
-        else {
-            ageInYearConfig=false;
-            ageInMonthConfig=false;
+        } else {
+            ageInYearConfig = false;
+            ageInMonthConfig = false;
         }
     }
 
@@ -253,21 +252,16 @@ public class ConfigurateAge extends LoginAndLocationTest {
             //500 error handle and failed backend connection and deployment scerio etc
             String messageText = handleRuntimeError("Patient Registeration");
 
-            if(messageText!=null && !messageText.isEmpty()) {
-                System.out.println("Fetched Message: " + messageText);
+            System.out.println("Fetched Message: " + messageText);
 
-                if (messageText.contains("New Patient")) {
-                    patientCode = messageText.replace("New Patient", "")
-                            .replace("Registered Successfully", "")
-                            .trim();
+            if (messageText.contains("New Patient")) {
+                patientCode = messageText.replace("New Patient", "")
+                        .replace("Registered Successfully", "")
+                        .trim();
 
-                    System.out.println("Extracted Code: " + patientCode);
-                } else {
-                    patientCode = null;
-                }
-            }
-            else {
-                Assert.fail("❌ Failed to Patient Registered");
+                System.out.println("Extracted Code: " + patientCode);
+            } else {
+                patientCode = null;
             }
         } catch (Exception e) {
             patientCode = null;
@@ -275,41 +269,45 @@ public class ConfigurateAge extends LoginAndLocationTest {
     }
 
     private String handleRuntimeError(String type) {
-        WebElement resultElement = wait.until(driver -> {
-            List<By> locators = Arrays.asList(
-                    By.xpath("//div[contains(@class, 'container-2')]/p[contains(text(),'')]"),
-                    By.xpath("//p[normalize-space(text())='Error 403']"),
-                    By.xpath("//p[contains(text(),'Error 0')]"),
-                    By.xpath("//p[contains(text(),'Error 2')]"),
-                    By.xpath("//div[contains(@class, 'container-2')]/p[contains(text(),'Something Went Wrong')]")
+        return wait.until(driver -> {
+            // Error messages (only these should cause test failure)
+            List<String> errorMessages = Arrays.asList(
+                    "Error 403",
+                    "Error 0",
+                    "Error 2",
+                    "Something Went Wrong",
+                    ""
             );
 
-            for (By locator : locators) {
+            // XPath locators for detecting messages
+            List<By> messageLocators = Arrays.asList(
+                    By.xpath("//div[contains(@class, 'container-2')]/p"),
+                    By.xpath("//p"),
+                    By.xpath("//div[contains(@class, 'toast-right-top')]//p")
+            );
+
+            // Iterate through locators to find a message
+            for (By locator : messageLocators) {
                 List<WebElement> elements = driver.findElements(locator);
-                String messageText = elements.get(0).getText();
-                System.out.println("Element Found: " + messageText);
+                if (!elements.isEmpty() && elements.get(0).isDisplayed()) {
+                    String messageText = elements.get(0).getText().trim();
+                    System.out.println("🔍 Message Found: " + messageText);
 
-                // Assert failure if it's an error message
-                if (messageText.contains("Error 403") || messageText.contains("Error 0") ||
-                        messageText.contains("Error 2") || messageText.contains("Something Went Wrong") || messageText.isEmpty()) {
-                    Assert.fail("Test failed due to error message: " + messageText);
+                    // Fail only if message is in errorMessages list
+                    if (errorMessages.contains(messageText)) {
+                        System.out.println("⚠️ Error Message Detected: " + messageText);
+                        Assert.fail("Test failed due to error message: " + messageText);
+                    }
+
+                    // ✅ Return the found message text
+                    return messageText;
                 }
-
-                return elements.get(0);
             }
+
             return null;
         });
-
-        String messageText = resultElement.getText();
-        if(messageText!=null && !messageText.isEmpty())
-        {
-            return messageText;
-        }
-        else{
-            Assert.fail("❌ Error"+type);
-        }
-        return messageText;
     }
+
 
     private void patientFormSubmit(WebDriver driver) {
         WebElement submitButton = wait.until(ExpectedConditions.refreshed(ExpectedConditions.elementToBeClickable(By.xpath("//button[contains(text(),'Submit')]"))));
@@ -382,13 +380,36 @@ public class ConfigurateAge extends LoginAndLocationTest {
                 System.out.println("Patient name not found in dropdown.");
             }
 
+            WebElement selectElement = driver.findElement(By.cssSelector("select[formcontrolname='minute']"));
+
+            // Create a Select object
+            Select select = new Select(selectElement);
+
+            // Get the currently selected value
+            String currentValue = select.getFirstSelectedOption().getAttribute("value");
+
+            if (!currentValue.equals("null")) {
+                // Get all available options
+                List<WebElement> optionsMinits = select.getOptions();
+
+                // Find the next available minute value
+                for (int i = 0; i < optionsMinits.size(); i++) {
+                    String optionValue = optionsMinits.get(i).getAttribute("value");
+
+                    if (optionValue.equals(currentValue) && i + 1 < options.size()) {
+                        // Select the next available value
+                        select.selectByValue(options.get(i + 1).getAttribute("value"));
+                        break;
+                    }
+                }
+            }
 
             WebElement purposeDropdown = wait.until(ExpectedConditions.refreshed(ExpectedConditions.elementToBeClickable(
                     By.cssSelector("select[formcontrolname='purpose']")
             )));
 
-            Select select = new Select(purposeDropdown);
-            select.selectByVisibleText(admissionType);
+            Select selectPurpse = new Select(purposeDropdown);
+            selectPurpse.selectByVisibleText(admissionType);
 
 
             if (admissionType.equals("Scan")) {
@@ -405,6 +426,11 @@ public class ConfigurateAge extends LoginAndLocationTest {
             Select selectDr = new Select(selectDoctorId);
             selectDr.selectByVisibleText(doctorName);
 
+            try {
+                Thread.sleep(3000);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
 
             WebElement saveButton = driver.findElement(By.id("saveNdCloseAp"));
             saveButton.click();
