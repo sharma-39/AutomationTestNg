@@ -11,10 +11,9 @@ import java.awt.*;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 
-public class PatientRegisterToBillGenerate extends LoginAndLocationTest {
+public class PatientRegisterToBillGenerate extends LoginAndLocationMainTest {
     private long THREAD_SECONDS = 3000;
     static int patientIncrement = 0;
 

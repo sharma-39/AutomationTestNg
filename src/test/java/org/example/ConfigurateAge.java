@@ -17,7 +17,7 @@ import java.util.Arrays;
 import java.util.List;
 
 
-public class ConfigurateAge extends LoginAndLocationTest {
+public class ConfigurateAge extends LoginAndLocationMainTest {
 
     StringBuffer stringBuffer = new StringBuffer();
     private long THREAD_SECONDS = 3000;
@@ -85,7 +85,7 @@ public class ConfigurateAge extends LoginAndLocationTest {
         System.out.println("Save button clicked successfully.");
     }
 
-    @Test(priority = 3, dependsOnMethods = {"testLogin"})
+    @Test(priority = 3)
     public void processtempPatientData() throws IOException, InterruptedException {
 
         threadTimer(3000);

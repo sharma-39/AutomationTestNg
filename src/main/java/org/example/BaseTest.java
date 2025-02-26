@@ -6,6 +6,7 @@ import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
+import org.testng.Assert;
 import org.testng.annotations.AfterSuite;
 import org.testng.annotations.BeforeSuite;
 import io.github.bonigarcia.wdm.WebDriverManager;
@@ -32,9 +33,9 @@ public class BaseTest {
     public void setUp() {
         String env = ConfigReader.getProperty("env");
         String baseUrl = ConfigReader.getProperty("url." + env);
-
-        // Use WebDriverManager to avoid hardcoded path
+        System.setProperty("webdriver.chrome.driver", "D:\\chromedriver-win64\\chromedriver.exe");
         WebDriverManager.chromedriver().setup();
+        // Use WebDriverManager to avoid hardcoded path
         ChromeOptions options = new ChromeOptions();
         options.addArguments("--headless"); // Run in Jenkins without GUI
         options.addArguments("--no-sandbox");
