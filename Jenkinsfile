@@ -1,33 +1,28 @@
 pipeline {
     agent any
 
-    environment {
-        MAVEN_HOME = 'D:\\Sharma\\Office\\Office\apache-maven-3.8.3' // Adjust based on your system
-    }
-
     stages {
-        stage('Checkout Code') {
+
+      stage('Build') {
             steps {
-                git url: 'https://github.com/sharma-39/AutomationTestNg.git', branch: 'main'
+                script {
+                    sh 'mvn clean install'
+                }
             }
         }
 
-        stage('Build and Test') {
+        stage('Run Tests') {
             steps {
-                sh 'mvn clean test' // Use 'bat' instead of 'sh' for Windows
+                script {
+                    sh 'mvn test -Dsurefire.suiteXmlFiles=testng.xml'
+                }
             }
         }
 
-        stage('Publish Test Results') {
+        stage('Post-Build Actions') {
             steps {
-                publishTestNG()
+                junit '**/target/surefire-reports/*.xml'
             }
-        }
-    }
-
-    post {
-        always {
-            junit '**/target/surefire-reports/*.xml'
         }
     }
 }
