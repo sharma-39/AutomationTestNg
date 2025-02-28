@@ -11,7 +11,7 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 
-public class UrlEmpedded extends LoginAndLocationMainTest {
+public class UrlEmpedded extends LoginAndLocationTest {
 
 
     @Test(priority = 3, dependsOnMethods = {"testLogin"})

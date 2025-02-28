@@ -50,14 +50,14 @@ public class LoginAndLocationTest extends BaseTest {
                     for (By locator : locators) {
                         List<WebElement> elements = driver.findElements(locator);
                         if (!elements.isEmpty() && elements.get(0).isDisplayed()) {
-                            System.out.println("Elemenets"+elements.toString());
+                            //System.out.println("Elemenets"+elements.toString());
                             return elements.get(0);
                         }
                     }
                     return null;
                 });
 
-                System.out.println("==================result set "+resultElement+""+resultElement.getText().trim()+"================");
+               // System.out.println("==================result set "+resultElement+""+resultElement.getText().trim()+"================");
                 if (resultElement != null) {
                     String resultText = resultElement.getText().trim();
 
@@ -117,15 +117,11 @@ public class LoginAndLocationTest extends BaseTest {
 
     @Test(priority = 2, dependsOnMethods = {"testLogin"})
     public void testLocationSelection() {
-        System.out.println("Locatiion loaded"+isSingleLocation+"logged"+isLoginSuccessful);
-
-        System.out.println("Location"+isSingleLocation);
+        if (!isLoginSuccessful) {
+            System.out.println("⛔ Skipping location selection as login failed.");
+            return;
+        }
         if(!isSingleLocation) {
-
-            if (!isLoginSuccessful) {
-                System.out.println("⛔ Skipping location selection as login failed.");
-                return;
-            }
 
             System.out.println("✅ Proceeding to Location Selection");
             WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(40));

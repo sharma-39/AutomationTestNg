@@ -8,7 +8,7 @@ import org.testng.annotations.Test;
 
 import java.util.List;
 
-public class FacilityConfiguration extends LoginAndLocationMainTest {
+public class FacilityConfiguration extends LoginAndLocationTest {
 
 
 
@@ -83,7 +83,7 @@ public class FacilityConfiguration extends LoginAndLocationMainTest {
         if (menuButton.isDisplayed()) {
             JavascriptExecutor js = (JavascriptExecutor) driver;
             js.executeScript("arguments[0].click();", menuButton);
-            System.out.println("Clicked on Menu Button");
+            System.out.println("Clicked on Menu Button:-"+menuButton);
         } else {
             System.out.println("Menu Button is not visible, skipping click action.");
         }

@@ -13,7 +13,7 @@ import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
 
-public class PatientRegisterToBillGenerate extends LoginAndLocationMainTest {
+public class PatientRegisterToBillGenerate extends LoginAndLocationTest {
     private long THREAD_SECONDS = 3000;
     static int patientIncrement = 0;
 

@@ -34,14 +34,15 @@ public class BaseTest {
         String env = ConfigReader.getProperty("env");
         String baseUrl = ConfigReader.getProperty("url." + env);
         System.setProperty("webdriver.chrome.driver", "D:\\chromedriver-win64\\chromedriver.exe");
-        WebDriverManager.chromedriver().setup();
+//        WebDriverManager.chromedriver().setup();
         // Use WebDriverManager to avoid hardcoded path
-        ChromeOptions options = new ChromeOptions();
-        options.addArguments("--headless"); // Run in Jenkins without GUI
-        options.addArguments("--no-sandbox");
-        options.addArguments("--disable-dev-shm-usage");
-        driver = new ChromeDriver(options);
+//        ChromeOptions options = new ChromeOptions();
+//        options.addArguments("--headless"); // Run in Jenkins without GUI
+//        options.addArguments("--no-sandbox");
+//        options.addArguments("--disable-dev-shm-usage");
+//        driver = new ChromeDriver(options);
 
+        driver = new ChromeDriver();
         driver.manage().window().maximize();
         driver.get(baseUrl);
         wait = new WebDriverWait(driver, Duration.ofSeconds(55));
@@ -74,9 +75,8 @@ public class BaseTest {
         if (menuButton.isDisplayed()) {
             JavascriptExecutor js = (JavascriptExecutor) driver;
             js.executeScript("arguments[0].click();", menuButton);
-            System.out.println("Clicked on Menu Button");
         } else {
-            System.out.println("Menu Button is not visible, skipping click action.");
+            System.out.println(" ⚠ Menu Button is not visible, skipping click action.");
         }
         threadTimer(3000);
 
@@ -87,12 +87,13 @@ public class BaseTest {
         js.executeScript("arguments[0].style.border='3px solid red';", panelClick); // Highlight
         js.executeScript("arguments[0].scrollIntoView(true);", panelClick);
         panelClick.click();
+        System.out.println("✅ Panel Click :-"+panel);
     }
 
     @AfterSuite
     public void tearDown() {
-        if (driver != null) {
-            driver.quit();
-        }
+//        if (driver != null) {
+//            driver.quit();
+//        }
     }
 }
