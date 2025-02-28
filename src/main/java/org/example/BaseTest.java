@@ -36,13 +36,13 @@ public class BaseTest {
         System.setProperty("webdriver.chrome.driver", "D:\\chromedriver-win64\\chromedriver.exe");
 //        WebDriverManager.chromedriver().setup();
         // Use WebDriverManager to avoid hardcoded path
-        ChromeOptions options = new ChromeOptions();
-        options.addArguments("--headless"); // Run in Jenkins without GUI
-        options.addArguments("--no-sandbox");
-        options.addArguments("--disable-dev-shm-usage");
-        driver = new ChromeDriver(options);
+//        ChromeOptions options = new ChromeOptions();
+//        options.addArguments("--headless"); // Run in Jenkins without GUI
+//        options.addArguments("--no-sandbox");
+//        options.addArguments("--disable-dev-shm-usage");
+//        driver = new ChromeDriver(options);
 
-//        driver = new ChromeDriver();
+        driver = new ChromeDriver();
         driver.manage().window().maximize();
         driver.get(baseUrl);
         wait = new WebDriverWait(driver, Duration.ofSeconds(55));

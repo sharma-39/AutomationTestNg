@@ -2,8 +2,7 @@
 <suite name="AutomationSuite">
     <test name="LoginTests">
         <classes>
-            <class name="org.example.ConfigurateAge"/>
-            <class name="org.example.OpBillConfig"/>
+            <class name="org.example.CreateSeperateBillOP"/>
         </classes>
     </test>
 </suite>
