@@ -49,11 +49,12 @@ public class OpBillConfig extends LoginAndLocationTest {
                         menuPanelClick("OP");
                         List<String> status = Arrays.asList("Partially Paid", "Paid");
 
-                        int discount=50;
+                        int discount = 50;
                         for (int loop = 0; loop < status.size(); loop++) {
                             System.out.println("STATUS:---" + status.get(loop));
-                            opbillPayPartitalStatusTOPaid(patientCode, status.get(loop), loop,discount);
+                            opbillPayPartitalStatusTOPaid(patientCode, status.get(loop), loop, discount);
                         }
+                        cancelBill(patientCode);
                     }
                 }
             }
@@ -70,11 +71,11 @@ public class OpBillConfig extends LoginAndLocationTest {
         threadTimer(3000);
 
 
-        if (findRow(patientCode, "View", "Success", totalPages)) {
+        if (findRow(patientCode, "View Bill", "Success", totalPages)) {
             if (statusText.equals("Partially Paid")) {
                 addBillingDetails(statusText);
                 amountTabClick();
-                enterAmounts(statusText,discount);
+                enterAmounts(statusText, discount);
             }
             threadTimer(3000);
             submitBilling();
@@ -142,7 +143,7 @@ public class OpBillConfig extends LoginAndLocationTest {
         WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
 
         try {
-            fillDiscountAmount("Overall Discount Percentage",discount);
+            fillDiscountAmount("Overall Discount Percentage", discount);
             // ✅ Get all table rows inside tbodyIn2
             List<WebElement> rows = wait.until(ExpectedConditions.presenceOfAllElementsLocatedBy(
                     By.xpath("//tbody[@id='tbodyIn2']/tr")
@@ -244,7 +245,7 @@ public class OpBillConfig extends LoginAndLocationTest {
 
                     System.out.println("Row Highlighted!");
                     isFound = true;
-                    WebElement viewButton = rows.get(i).findElement(By.xpath(".//button[@title='View Bill']"));
+                    WebElement viewButton = rows.get(i).findElement(By.xpath(".//button[@title='" + title + "']"));
                     scrollToElement(viewButton);
                     viewButton.click();
                     break;
@@ -294,9 +295,9 @@ public class OpBillConfig extends LoginAndLocationTest {
 // ✅ Click the table
         table.click();
     }
-    private void fillDiscountAmount(String label, int discount)
-    {
-        By discountAmountInput = By.xpath("//tr[th[contains(text(),'"+label+"')]]//input");
+
+    private void fillDiscountAmount(String label, int discount) {
+        By discountAmountInput = By.xpath("//tr[th[contains(text(),'" + label + "')]]//input");
 
         WebElement discountAmountField = driver.findElement(discountAmountInput);
 
@@ -305,7 +306,36 @@ public class OpBillConfig extends LoginAndLocationTest {
 
         discountAmountField.clear();
         discountAmountField.sendKeys(String.valueOf(discount));
+    }
 
+    private void cancelBill(String patientCode) {
+        int totalPages = getPaginationDetails();
+
+        if (findRow(patientCode, "Cancel", "Success", totalPages)) {
+            // Locate the readonly input field
+            By inputField = By.xpath("//input[@class='form-control' and @readonly]");
+
+// Get the value from the input field
+            WebElement inputElement = driver.findElement(inputField);
+            String inputValue = inputElement.getAttribute("value");
+
+            System.out.println("Extracted Value: " + inputValue);
+
+            // Locate the textarea field using its placeholder
+
+            WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+            WebElement textareaElement = wait.until(ExpectedConditions.elementToBeClickable(
+                    By.xpath("//textarea[@placeholder='Please enter a reason for bill cancellation']")
+            ));
+            textareaElement.sendKeys("Incorrect patient details.");
+
+
+            clickElement(By.xpath("//button[contains(text(), 'Cancel Bill')]"));
+
+            System.out.println("Cancellation reason entered successfully!");
+
+
+        }
 
 
     }
