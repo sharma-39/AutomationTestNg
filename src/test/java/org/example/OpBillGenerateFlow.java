@@ -13,7 +13,7 @@ import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
 
-public class OpBillConfig extends LoginAndLocationTest {
+public class OpBillGenerateFlow extends LoginAndLocationTest {
 
     private static final long THREAD_SECONDS = 3000;
     private static int patientIncrement = 0;
@@ -22,7 +22,7 @@ public class OpBillConfig extends LoginAndLocationTest {
     private boolean isAppointmentCreated = false;
     private boolean isAppointmentCheckedIn = false;
 
-    public OpBillConfig() {
+    public OpBillGenerateFlow() {
         this.patientFlowHelper = new PatientFlowHelper();
     }
 
