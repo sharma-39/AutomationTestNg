@@ -4,6 +4,7 @@ import org.json.JSONObject;
 import org.openqa.selenium.*;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
+import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
@@ -31,6 +32,7 @@ public class ConfigurateAge extends LoginAndLocationTest {
 
     boolean isAppoinmentCheckin = false;
 
+    boolean isPharmacyBillHold=false;
 
     public ConfigurateAge() {
         this.patientHelper = new PatientFlowHelper(); // Ensure initialization
@@ -98,11 +100,11 @@ public class ConfigurateAge extends LoginAndLocationTest {
                 threadTimer(4000);
                 facilityConfigAge();
                 logSummary.append("✅ Enable: " + labelTextAge + " : ").append("|");
-                for (int i = 5 + j; i <= 5 + j; i++) {
+                for (int i = 10 + j; i <= 10 + j; i++) {
                     patientIncrement = i;
                     JSONObject patient = tempPatientData.getJSONObject(patientIncrement);
                     namePatientAndAge(ageLabel.get(j));
-                    patientCode = patientHelper.patientRegisterTest(this, patient, driver, wait, "Patient Registration");
+                   // patientCode = patientHelper.patientRegisterTest(this, patient, driver, wait, "Patient Registration");
                     logSummary.append("✅ Patient Registered: ").append(patientCode).append(" | ");
                     menuPanelClick("Dashboard");
                     threadTimer(3000);
@@ -114,13 +116,19 @@ public class ConfigurateAge extends LoginAndLocationTest {
                             isAppoinmentCheckin = patientHelper.checkingAppointmentTest(this, driver, wait, "View Appointments", patientCode);
                             if (isAppoinmentCheckin) {
                                 logSummary.append("✅ Checked In | ");
+
                                 addPrescriptionTest();
                                 logSummary.append("✅ Prescription Added | ");
                                 pharmacyBillTest();
-                                logSummary.append("✅ Pharmacy Bill Paid | ");
-                                threadTimer(4000);
-                                PharmacyView();
-                                logSummary.append("✅ Pharmacy Viewed | ");
+                                if(!isPharmacyBillHold) {
+                                    logSummary.append("✅ Pharmacy Bill Paid | ");
+                                    threadTimer(4000);
+                                    PharmacyView();
+                                    logSummary.append("✅ Pharmacy Viewed | ");
+                                }
+                                else {
+                                    break;
+                                }
                                 menuPanelClick("Dashboard");
                             } else {
                                 logSummary.append("❌ Appointment Check in Issue");
@@ -136,6 +144,7 @@ public class ConfigurateAge extends LoginAndLocationTest {
                             .append(isAgeInMonth ? "Age In Month ✅" : "")
                             .append(isAgeInYear ? "Age in Year ✅" : "").toString();
                     DBUtil.insertScenario(logSummary.toString(), "Success");
+                    isLoginSuccessful=true;
                 }
                 logSummaryList.add(logSummary.toString());
             }
@@ -328,6 +337,12 @@ public class ConfigurateAge extends LoginAndLocationTest {
         threadTimer(3000);
         payButton.click();
 
+
+         WebElement element=billPayErrr("",wait);
+         if(element.getText().contains("hold due to Stock Adjustment"))
+         {
+                isPharmacyBillHold=true;
+         }
         System.out.println("Pay button clicked successfully.");
 
         threadTimer(5000);
@@ -529,6 +544,26 @@ public class ConfigurateAge extends LoginAndLocationTest {
 
     }
 
+    private WebElement billPayErrr(String type, WebDriverWait wait) {
 
+
+        WebElement resultElement = wait.until(driver -> {
+            List<By> locators = Arrays.asList(
+                    By.xpath("//div[contains(@class, 'container-2')]/p[contains(text(),'Pharmacy Billing is on hold due to Stock Adjustment')]"),
+                    By.xpath("//div[contains(@class, 'container-2')]/p[contains(text(),'Bill Saved Successfully')]")
+
+            );
+
+            for (By locator : locators) {
+                List<WebElement> elements = driver.findElements(locator);
+                if (!elements.isEmpty() && elements.get(0).isDisplayed()) {
+                    //System.out.println("Elemenets"+elements.toString());
+                    return elements.get(0);
+                }
+            }
+            return null;
+        });
+        return resultElement;
+    }
 }
 

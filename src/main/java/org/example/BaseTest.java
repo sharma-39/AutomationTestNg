@@ -7,7 +7,9 @@ import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.testng.Assert;
+import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterSuite;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeSuite;
 import io.github.bonigarcia.wdm.WebDriverManager;
 import java.io.IOException;
@@ -18,32 +20,33 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class BaseTest {
+
     protected WebDriver driver;
     protected WebDriverWait wait;
-    protected boolean isLoginSuccessful = false;
+    protected static boolean isLoginSuccessful = false;
     protected boolean isSingleLocation = false;
     protected boolean isDashboardLoaded = false;
-    protected JSONArray tempPatientData;
+    protected static JSONArray tempPatientData;
     protected Boolean isAgeInMonth = false;
-    protected List<String> ageLabel = new ArrayList<>();
+    protected static List<String> ageLabel = new ArrayList<>();
     protected Boolean isAgeInYear = false;
     protected List<UserDetails> userDetails = new ArrayList<>();
 
-    @BeforeSuite
+    @BeforeClass
     public void setUp() {
         String env = ConfigReader.getProperty("env");
         String baseUrl = ConfigReader.getProperty("url." + env);
         System.setProperty("webdriver.chrome.driver", "D:\\chromedriver-win64\\chromedriver.exe");
 //        WebDriverManager.chromedriver().setup();
         // Use WebDriverManager to avoid hardcoded path
-//        ChromeOptions options = new ChromeOptions();
-//        options.addArguments("--headless"); // Run in Jenkins without GUI
-//        options.addArguments("--no-sandbox");
-//        options.addArguments("--disable-dev-shm-usage");
-//        driver = new ChromeDriver(options);
+        ChromeOptions options = new ChromeOptions();
+        options.addArguments("--headless"); // Run in Jenkins without GUI
+        options.addArguments("--no-sandbox");
+        options.addArguments("--disable-dev-shm-usage");
+        driver = new ChromeDriver(options);
 
-        driver = new ChromeDriver();
-        driver.manage().window().maximize();
+//        driver = new ChromeDriver();
+//        driver.manage().window().maximize();
         driver.get(baseUrl);
         wait = new WebDriverWait(driver, Duration.ofSeconds(55));
 
@@ -90,10 +93,9 @@ public class BaseTest {
         System.out.println("✅ Panel Click :-"+panel);
     }
 
-    @AfterSuite
+    @AfterClass
     public void tearDown() {
-//        if (driver != null) {
-//            driver.quit();
-//        }
+
+        driver.quit();
     }
 }

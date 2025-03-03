@@ -124,7 +124,7 @@ public class LoginAndLocationTest extends BaseTest {
         if(!isSingleLocation) {
 
             System.out.println("✅ Proceeding to Location Selection");
-            WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(40));
+            wait = new WebDriverWait(driver, Duration.ofSeconds(40));
 
 
             try {

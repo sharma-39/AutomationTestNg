@@ -140,6 +140,7 @@ public class CreateSeperateBillOP extends LoginAndLocationTest {
     // Helper method to select an option from the dropdown
     private void selectDropdownOption(String optionText) {
         List<WebElement> options = wait.until(ExpectedConditions.presenceOfAllElementsLocatedBy(By.xpath("//mat-option//span")));
+
         for (WebElement option : options) {
             if (option.getText().trim().equals(optionText)) {
                 scrollToElement(option);
