@@ -15,45 +15,60 @@ import java.util.List;
 
 public class OpBillGenerateFlow extends LoginAndLocationTest {
 
-    private static final long THREAD_SECONDS = 3000;
-    private static int patientIncrement = 0;
-    private PatientFlowHelper patientFlowHelper;
-    private String patientCode;
-    private boolean isAppointmentCreated = false;
-    private boolean isAppointmentCheckedIn = false;
+    private static final long THREAD_SECONDS = 3000; // Constant for thread sleep time
+    private static int patientIncrement = 0; // Counter for patient increment
+    private PatientFlowHelper patientFlowHelper; // Helper class for patient flow
+    private String patientCode; // Stores the patient code
+    private boolean isAppointmentCreated = false; // Flag to check if appointment is created
+    private boolean isAppointmentCheckedIn = false; // Flag to check if appointment is checked in
 
+    // Constructor to initialize the PatientFlowHelper
     public OpBillGenerateFlow() {
         this.patientFlowHelper = new PatientFlowHelper();
     }
 
-    @Test(priority = 3)
+    @Test(priority = 3, description = "Test to generate OP bill flow")
     public void opBillFlow() {
+        // Check if login was successful
         if (!isLoginSuccessful) {
             Assert.fail("Login failed");
         }
 
+        // Get patient data from JSON
         JSONObject patient = tempPatientData.getJSONObject(patientIncrement);
         for (int i = 50; i <= 50; i++) {
             patientIncrement = i;
+            // Register the patient and get the patient code
             patientCode = patientFlowHelper.patientRegisterTest(this, patient, driver, wait, "Patient Registration");
-            System.out.println("Op Bill flow Start to Patient Code:" + patientCode);
+            System.out.println("OP Bill flow started for Patient Code: " + patientCode);
+
+            // Navigate to the dashboard
             menuPanelClick("Dashboard");
 
             if (patientCode != null) {
+                // Create an appointment for the patient
                 isAppointmentCreated = patientFlowHelper.createAppointment(this, patient, driver, wait, "Create Appointment", patientCode);
                 if (isAppointmentCreated) {
-                    threadTimer(3000);
+                    threadTimer(3000); // Wait for the appointment to be created
+
+                    // Check in the appointment
                     isAppointmentCheckedIn = patientFlowHelper.checkingAppointmentTest(this, driver, wait, "View Appointments", patientCode);
 
                     if (isAppointmentCheckedIn) {
+                        // Navigate to the OP menu
                         menuPanelClick("OP");
-                        List<String> status = Arrays.asList("Partially Paid", "Paid");
 
-                        int discount = 50;
+                        // Define billing statuses
+                        List<String> status = Arrays.asList("Partially Paid", "Paid");
+                        int discount = 50; // Discount amount
+
+                        // Process billing for each status
                         for (int loop = 0; loop < status.size(); loop++) {
                             System.out.println("STATUS:---" + status.get(loop));
-                            opbillPayPartitalStatusTOPaid(patientCode, status.get(loop), loop, discount);
+                            opbillPayPartialStatusToPaid(patientCode, status.get(loop), loop, discount);
                         }
+
+                        // Cancel the bill after processing
                         cancelBill(patientCode);
                     }
                 }
@@ -61,27 +76,28 @@ public class OpBillGenerateFlow extends LoginAndLocationTest {
         }
     }
 
-    private void opbillPayPartitalStatusTOPaid(String patientCode, String statusText, int loop, int discount) {
+    // Helper method to handle partial payment to paid status
+    private void opbillPayPartialStatusToPaid(String patientCode, String statusText, int loop, int discount) {
+        threadTimer(3000); // Wait for the page to load
 
-        threadTimer(3000);
-
+        // Get pagination details
         int totalPages = getPaginationDetails();
-        System.out.println("totalPage" + totalPages);
-        System.out.println("patient code:=" + patientCode);
-        threadTimer(3000);
+        System.out.println("Total Pages: " + totalPages);
+        System.out.println("Patient Code: " + patientCode);
 
-
+        // Find the row with the patient code and process billing
         if (findRow(patientCode, "View Bill", "Success", totalPages)) {
             if (statusText.equals("Partially Paid")) {
-                addBillingDetails(statusText);
-                amountTabClick();
-                enterAmounts(statusText, discount);
+                addBillingDetails(statusText); // Add billing details
+                amountTabClick(); // Click the amount tab
+                enterAmounts(statusText, discount); // Enter amounts
             }
-            threadTimer(3000);
-            submitBilling();
+            threadTimer(3000); // Wait for the UI to update
+            submitBilling(); // Submit the billing
         }
     }
 
+    // Helper method to get pagination details
     private int getPaginationDetails() {
         JavascriptExecutor js = (JavascriptExecutor) driver;
         String pageText = (String) js.executeScript("return document.querySelector('li.small-screen')?.textContent.trim();");
@@ -90,13 +106,14 @@ public class OpBillGenerateFlow extends LoginAndLocationTest {
             String[] pageParts = pageText.split("/");
             return Integer.parseInt(pageParts[1].trim());
         }
-        return 1;
+        return 1; // Default to 1 page if pagination is not found
     }
 
+    // Helper method to add billing details
     private void addBillingDetails(String statusText) {
         List<String> optionTexts = Arrays.asList("Consultation Charge", "Doctor Fees 5");
 
-// First, click "Add New" to enable the dropdown if needed
+        // Click "Add New" to enable the dropdown if needed
         WebElement addNewButton = driver.findElement(By.xpath("//div[contains(@class, 'addIcon-button')]/span[text()='Add New']"));
         addNewButton.click();
         threadTimer(3000); // Wait for UI update
@@ -123,64 +140,63 @@ public class OpBillGenerateFlow extends LoginAndLocationTest {
             addNewButton.click();
             threadTimer(3000); // Wait for UI update before selecting the next option
         }
-
     }
 
+    // Helper method to select an option from the dropdown
     private void selectDropdownOption(String optionText) {
         List<WebElement> options = wait.until(ExpectedConditions.presenceOfAllElementsLocatedBy(By.xpath("//mat-option//span")));
         for (WebElement option : options) {
             if (option.getText().trim().equals(optionText)) {
-                scrollToElement(option);
-                threadTimer(500);
-                option.click();
-                threadTimer(1000);
+                scrollToElement(option); // Scroll to the option
+                threadTimer(500); // Small wait
+                option.click(); // Click the option
+                threadTimer(1000); // Wait for the UI to update
                 break;
             }
         }
     }
 
+    // Helper method to enter amounts in the billing form
     private void enterAmounts(String statusText, int discount) {
         WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
 
         try {
-            fillDiscountAmount("Overall Discount Percentage", discount);
-            // ✅ Get all table rows inside tbodyIn2
+            fillDiscountAmount("Overall Discount Percentage", discount); // Fill discount amount
+
+            // Get all table rows inside tbodyIn2
             List<WebElement> rows = wait.until(ExpectedConditions.presenceOfAllElementsLocatedBy(
                     By.xpath("//tbody[@id='tbodyIn2']/tr")
             ));
 
+            // Get the final amount and total paid amount
             WebElement finalAmountElement = driver.findElement(By.xpath("//tr[th[contains(text(), 'Final Amount')]]/td"));
-            String finalAmount = finalAmountElement.getText();
-            String amountOnly = finalAmount.replaceAll("[^0-9]", "");
-            System.out.println("Final Amount: " + finalAmount);
+            String finalAmount = finalAmountElement.getText().replaceAll("[^0-9]", "");
             WebElement finalTotalPaidElement = driver.findElement(By.xpath("//tr[th[contains(text(), 'Total Paid Amount')]]/td"));
-            String totalPaidAmount = finalTotalPaidElement.getText();
-            String amountTotalOnly = totalPaidAmount.replaceAll("[^0-9]", "");
+            String totalPaidAmount = finalTotalPaidElement.getText().replaceAll("[^0-9]", "");
 
             System.out.println("Total rows found: " + rows.size());
 
+            // Iterate through rows and fill amounts
             for (int i = 0; i < rows.size(); i++) {
                 try {
-                    // ✅ Re-fetch rows each iteration to prevent stale elements
+                    // Re-fetch rows each iteration to prevent stale elements
                     rows = wait.until(ExpectedConditions.presenceOfAllElementsLocatedBy(By.xpath("//tbody[@id='tbodyIn2']/tr")));
                     WebElement row = rows.get(i);
 
-                    // ✅ Locate the "Amount" input field inside the refreshed row
+                    // Locate the "Amount" input field inside the refreshed row
                     WebElement amountInput = row.findElement(By.xpath(".//td[contains(@class, 'text-right')]//input[@type='number']"));
 
-                    System.out.println("old Amount" + amountInput.getAttribute("v"));
                     if (amountInput.isDisplayed()) {
-                        ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);", amountInput);
+                        scrollToElement(amountInput); // Scroll to the input field
                         if (statusText.equals("Partially Paid")) {
                             amountInput.clear();
-                            amountInput.sendKeys(String.valueOf(Math.round(Integer.parseInt(amountOnly) / 2)));
+                            amountInput.sendKeys(String.valueOf(Math.round(Integer.parseInt(finalAmount) / 2))); // Enter half amount for partial payment
                         } else {
                             amountInput.clear();
-                            amountInput.sendKeys(String.valueOf(Math.round(Float.parseFloat(amountOnly) - Float.parseFloat(amountTotalOnly))));
+                            amountInput.sendKeys(String.valueOf(Math.round(Float.parseFloat(finalAmount) - Float.parseFloat(totalPaidAmount)))); // Enter remaining amount
                         }
-                        System.out.println("✅ Filled Amount Field with 500 in Row " + (i + 1));
+                        System.out.println("✅ Filled Amount Field in Row " + (i + 1));
                     }
-
                 } catch (NoSuchElementException e) {
                     System.out.println("❌ No Amount Field Found in Row " + (i + 1));
                 } catch (StaleElementReferenceException e) {
@@ -188,66 +204,67 @@ public class OpBillGenerateFlow extends LoginAndLocationTest {
                     i--; // Retry the same row
                 }
             }
-
         } catch (Exception e) {
             System.out.println("❌ Error: " + e.getMessage());
         }
     }
 
+    // Helper method to submit billing
     private void submitBilling() {
-        clickElement(By.xpath("//label[contains(text(), 'Remarks')]"));
-        clickElement(By.xpath("//button[contains(text(), 'Pay Bill')]"));
-        threadTimer(3000);
-        clickElement(By.xpath("//div[contains(@class, 'sa-confirm-button-container')]//button[contains(text(), 'Yes')]"));
-        threadTimer(5000);
-        closePrintScreen();
+        clickElement(By.xpath("//label[contains(text(), 'Remarks')]")); // Click remarks
+        clickElement(By.xpath("//button[contains(text(), 'Pay Bill')]")); // Click pay bill
+        threadTimer(3000); // Wait for the UI to update
+        clickElement(By.xpath("//div[contains(@class, 'sa-confirm-button-container')]//button[contains(text(), 'Yes')]")); // Confirm payment
+        threadTimer(5000); // Wait for the payment to process
+        closePrintScreen(); // Close the print screen
     }
 
+    // Helper method to close the print screen
     private void closePrintScreen() {
-
         try {
             Robot robot = new Robot();
             robot.delay(1000); // Wait before sending key
-            robot.keyPress(KeyEvent.VK_ESCAPE);
-            robot.keyRelease(KeyEvent.VK_ESCAPE);
-            threadTimer(4000);
+            robot.keyPress(KeyEvent.VK_ESCAPE); // Press escape key
+            robot.keyRelease(KeyEvent.VK_ESCAPE); // Release escape key
+            threadTimer(4000); // Wait for the screen to close
         } catch (AWTException ignored) {
             ignored.printStackTrace();
         }
     }
 
+    // Helper method to click an element
     private void clickElement(By locator) {
         WebElement element = wait.until(ExpectedConditions.elementToBeClickable(locator));
-        scrollToElement(element);
-        element.click();
+        scrollToElement(element); // Scroll to the element
+        element.click(); // Click the element
     }
 
+    // Helper method to scroll to an element
     private void scrollToElement(WebElement element) {
         ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);", element);
     }
 
+    // Helper method to find a row by patient code and status
     public Boolean findRow(String patientCode, String title, String status, int totalPages) {
-
         boolean isFound = false;
         int currentPage = 1;
 
         while (!isFound && currentPage <= totalPages) {
-
-            // ✅ Re-fetch the table rows after each page change
+            // Re-fetch the table rows after each page change
             List<WebElement> rows = driver.findElements(By.xpath("//table//tr"));
             for (int i = 0; i < rows.size(); i++) {
                 if (rows.get(i).getText().contains(patientCode)) {
                     System.out.println("Row Found at Index: " + (i + 1));
 
-                    // ✅ Highlight the row
+                    // Highlight the row
                     JavascriptExecutor js = (JavascriptExecutor) driver;
                     js.executeScript("arguments[0].style.backgroundColor = 'yellow'", rows.get(i));
 
                     System.out.println("Row Highlighted!");
                     isFound = true;
                     WebElement viewButton = rows.get(i).findElement(By.xpath(".//button[@title='" + title + "']"));
-                    scrollToElement(viewButton);
-                    viewButton.click();
+                    scrollToElement(viewButton); // Scroll to the button
+                    viewButton.click(); // Click the button
                     break;
                 }
             }
@@ -255,19 +272,15 @@ public class OpBillGenerateFlow extends LoginAndLocationTest {
             if (!isFound && currentPage < totalPages) {
                 try {
                     currentPage++; // Increment before clicking
-
                     WebElement pageNo = wait.until(ExpectedConditions.elementToBeClickable(
                             By.xpath("//ul[contains(@class, 'ngx-pagination')]//li/a/span[text()='" + currentPage + "']")
                     ));
 
-                    // ✅ Scroll into view to ensure it's visible
+                    // Scroll into view and click the next page button
                     ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);", pageNo);
                     Thread.sleep(500); // Small delay for UI adjustment
-
-                    // ✅ Click the next page button
-                    pageNo.click();
+                    pageNo.click(); // Click the next page button
                     Thread.sleep(3000); // Allow time for the new page to load
-
                 } catch (Exception e) {
                     System.out.println("Pagination button not found or not clickable.");
                     break;
@@ -283,60 +296,40 @@ public class OpBillGenerateFlow extends LoginAndLocationTest {
         }
     }
 
+    // Helper method to click the amount tab
     private void amountTabClick() {
-        // ✅ Locate the table using class name or other attributes
         WebElement table = wait.until(ExpectedConditions.elementToBeClickable(
                 By.xpath("//table[contains(@class, 'hm-p table-disable-hover')]")
         ));
-
-// ✅ Scroll into view before clicking (if needed)
-        ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);", table);
-
-// ✅ Click the table
-        table.click();
+        ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);", table); // Scroll to the table
+        table.click(); // Click the table
     }
 
+    // Helper method to fill the discount amount
     private void fillDiscountAmount(String label, int discount) {
-        By discountAmountInput = By.xpath("//tr[th[contains(text(),'" + label + "')]]//input");
-
-        WebElement discountAmountField = driver.findElement(discountAmountInput);
-
-        String currentAmount = discountAmountField.getAttribute("value");
-        System.out.println("Current Discount Amount: " + currentAmount);
-
-        discountAmountField.clear();
-        discountAmountField.sendKeys(String.valueOf(discount));
+        WebElement discountAmountField = driver.findElement(By.xpath("//tr[th[contains(text(),'" + label + "')]]//input"));
+        discountAmountField.clear(); // Clear the field
+        discountAmountField.sendKeys(String.valueOf(discount)); // Enter the discount amount
     }
 
+    // Helper method to cancel the bill
     private void cancelBill(String patientCode) {
         int totalPages = getPaginationDetails();
 
         if (findRow(patientCode, "Cancel", "Success", totalPages)) {
             // Locate the readonly input field
-            By inputField = By.xpath("//input[@class='form-control' and @readonly]");
-
-// Get the value from the input field
-            WebElement inputElement = driver.findElement(inputField);
-            String inputValue = inputElement.getAttribute("value");
-
+            WebElement inputElement = driver.findElement(By.xpath("//input[@class='form-control' and @readonly]"));
+            String inputValue = inputElement.getAttribute("value"); // Get the value from the input field
             System.out.println("Extracted Value: " + inputValue);
 
             // Locate the textarea field using its placeholder
-
-            WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
             WebElement textareaElement = wait.until(ExpectedConditions.elementToBeClickable(
                     By.xpath("//textarea[@placeholder='Please enter a reason for bill cancellation']")
             ));
-            textareaElement.sendKeys("Incorrect patient details.");
+            textareaElement.sendKeys("Incorrect patient details."); // Enter cancellation reason
 
-
-            clickElement(By.xpath("//button[contains(text(), 'Cancel Bill')]"));
-
+            clickElement(By.xpath("//button[contains(text(), 'Cancel Bill')]")); // Click cancel bill
             System.out.println("Cancellation reason entered successfully!");
-
-
         }
-
-
     }
 }

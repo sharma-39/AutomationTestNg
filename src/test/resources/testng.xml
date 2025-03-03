@@ -2,7 +2,9 @@
 <suite name="AutomationSuite">
     <test name="LoginTests">
         <classes>
-            <class name="org.example.CreateSeperateBillOP"/>
+            <class name="org.example.PatientRegisterToBillGenerate"/>
+            <class name="org.example.OpBillGenerateFlow"/>
+            <class name="org.example.CreateSeperateBillOP"></class>
         </classes>
     </test>
 </suite>
