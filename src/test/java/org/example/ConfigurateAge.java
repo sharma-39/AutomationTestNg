@@ -14,7 +14,7 @@ import java.util.List;
 
 
 public class ConfigurateAge extends LoginAndLocationTest {
-    
+
     static int patientIncrement = 0;
 
     String patientLabelCaption = null;
@@ -29,7 +29,7 @@ public class ConfigurateAge extends LoginAndLocationTest {
 
     protected boolean isAppoinmentCreated = false;
 
-    boolean isAppoinmentCheckin=false;
+    boolean isAppoinmentCheckin = false;
 
 
     public ConfigurateAge() {
@@ -84,7 +84,7 @@ public class ConfigurateAge extends LoginAndLocationTest {
     }
 
     @Test(priority = 3)
-    public void processtempPatientData() throws IOException, InterruptedException {
+    public void processPatientTempData() throws IOException, InterruptedException {
         threadTimer(3000);
         if (isLoginSuccessful) {
             List<String> logSummaryList = new ArrayList<>();
@@ -141,6 +141,7 @@ public class ConfigurateAge extends LoginAndLocationTest {
             }
         }
     }
+
     private void namePatientAndAge(String ageLabel) {
 
         if (ageLabel.contains("Age In Years And Months")) {
@@ -155,7 +156,7 @@ public class ConfigurateAge extends LoginAndLocationTest {
             ageInMonthConfig = false;
         }
     }
-    
+
 
     public void addPrescriptionTest() throws IOException {
         if (isLoginSuccessful) {
@@ -178,7 +179,7 @@ public class ConfigurateAge extends LoginAndLocationTest {
             pharmacyViewBill(patient.getString("patientName"), "Pharmacy", patient.getString("patientAge"), patient.getString("gender"));
         }
     }
-    
+
     private void addPrescription(String name, String panel, String prescriptionSearch, String prescriptionSelect) {
         menuPanelClick(panel);
         try {
@@ -434,7 +435,7 @@ public class ConfigurateAge extends LoginAndLocationTest {
 
         return null;
     }
-    
+
     private void pharmacyViewBill(String patientName, String pharmacy, String age, String gender) {
 
         System.out.println("Age in Year" + ageInYearConfig + "");
