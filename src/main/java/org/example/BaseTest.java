@@ -23,12 +23,12 @@ public class BaseTest {
 
     protected WebDriver driver;
     protected WebDriverWait wait;
-    protected static boolean isLoginSuccessful = false;
+    protected boolean isLoginSuccessful = false;
     protected boolean isSingleLocation = false;
     protected boolean isDashboardLoaded = false;
-    protected static JSONArray tempPatientData;
+    protected  JSONArray tempPatientData;
     protected Boolean isAgeInMonth = false;
-    protected static List<String> ageLabel = new ArrayList<>();
+    protected List<String> ageLabel = new ArrayList<>();
     protected Boolean isAgeInYear = false;
     protected List<UserDetails> userDetails = new ArrayList<>();
 
@@ -44,7 +44,7 @@ public class BaseTest {
         options.addArguments("--no-sandbox");
         options.addArguments("--disable-dev-shm-usage");
         driver = new ChromeDriver(options);
-
+//
 //        driver = new ChromeDriver();
 //        driver.manage().window().maximize();
         driver.get(baseUrl);
@@ -73,6 +73,7 @@ public class BaseTest {
     }
 
     protected void menuPanelClick(String panel) {
+        wait =new WebDriverWait(driver,Duration.ofSeconds(50));
         threadTimer(3000);
         WebElement menuButton = driver.findElement(By.id("mega-menu-nav-btn"));
         if (menuButton.isDisplayed()) {
@@ -91,6 +92,7 @@ public class BaseTest {
         js.executeScript("arguments[0].scrollIntoView(true);", panelClick);
         panelClick.click();
         System.out.println("✅ Panel Click :-"+panel);
+
     }
 
     @AfterClass

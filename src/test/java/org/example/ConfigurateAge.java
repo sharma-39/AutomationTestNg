@@ -34,6 +34,71 @@ public class ConfigurateAge extends LoginAndLocationTest {
 
     boolean isPharmacyBillHold=false;
 
+    @Test(priority = 3)
+    public void processPatientTempData() throws IOException, InterruptedException {
+        threadTimer(3000);
+        if (isLoginSuccessful) {
+            List<String> logSummaryList = new ArrayList<>();
+            for (int j = 0; j < 1; j++) {
+                StringBuilder logSummary = new StringBuilder();
+                labelTextAge = ageLabel.get(j);
+                patientCode = null;
+                isAgeInMonth = false;
+                isAgeInYear = false;
+                isAppoinmentCreated = false;
+                threadTimer(4000);
+                facilityConfigAge();
+                logSummary.append("✅ Enable: " + labelTextAge + " : ").append("|");
+                for (int i = 10 + j; i <= 10 + j; i++) {
+                    patientIncrement = i;
+                    JSONObject patient = tempPatientData.getJSONObject(patientIncrement);
+                    namePatientAndAge(ageLabel.get(j));
+                    patientCode = patientHelper.patientRegisterTest(this, patient, driver, wait, "Patient Registration");
+                    logSummary.append("✅ Patient Registered: ").append(patientCode).append(" | ");
+                    menuPanelClick("Dashboard");
+                    threadTimer(3000);
+                    if (patientCode != null) {
+                        isAppoinmentCreated = patientHelper.createAppointment(this, patient, driver, wait, "Create Appointment", patientCode);
+                        logSummary.append("✅ Appointment Created: ").append(patientCode).append(" | ");
+                        if (isAppoinmentCreated) {
+                            threadTimer(3000);
+                            isAppoinmentCheckin = patientHelper.checkingAppointmentTest(this, driver, wait, "View Appointments", patientCode);
+                            if (isAppoinmentCheckin) {
+                                logSummary.append("✅ Checked In | ");
+
+                                addPrescriptionTest();
+                                logSummary.append("✅ Prescription Added | ");
+                                pharmacyBillTest();
+                                if(!isPharmacyBillHold) {
+                                    logSummary.append("✅ Pharmacy Bill Paid | ");
+                                    threadTimer(4000);
+                                    PharmacyView();
+                                    logSummary.append("✅ Pharmacy Viewed | ");
+                                }
+                                else {
+                                    break;
+                                }
+                                menuPanelClick("Dashboard");
+                            } else {
+                                logSummary.append("❌ Appointment Check in Issue");
+                            }
+                            logSummary.append("✅ Loop Completed");
+                        } else {
+                            logSummary.append("❌ Appointment Creation Failed. Retrying...");
+                        }
+                    } else {
+                        logSummary.append("❌ Patient Code is null");
+                    }
+                    logSummary.append(" | Completed ")
+                            .append(isAgeInMonth ? "Age In Month ✅" : "")
+                            .append(isAgeInYear ? "Age in Year ✅" : "").toString();
+                    DBUtil.insertScenario(logSummary.toString(), "Success");
+                }
+                logSummaryList.add(logSummary.toString());
+            }
+        }
+    }
+
     public ConfigurateAge() {
         this.patientHelper = new PatientFlowHelper(); // Ensure initialization
     }
@@ -83,72 +148,6 @@ public class ConfigurateAge extends LoginAndLocationTest {
         saveButton.click();
 
         System.out.println("Save button clicked successfully.");
-    }
-
-    @Test(priority = 3)
-    public void processPatientTempData() throws IOException, InterruptedException {
-        threadTimer(3000);
-        if (isLoginSuccessful) {
-            List<String> logSummaryList = new ArrayList<>();
-            for (int j = 0; j < 1; j++) {
-                StringBuilder logSummary = new StringBuilder();
-                labelTextAge = ageLabel.get(j);
-                patientCode = null;
-                isAgeInMonth = false;
-                isAgeInYear = false;
-                isAppoinmentCreated = false;
-                threadTimer(4000);
-                facilityConfigAge();
-                logSummary.append("✅ Enable: " + labelTextAge + " : ").append("|");
-                for (int i = 10 + j; i <= 10 + j; i++) {
-                    patientIncrement = i;
-                    JSONObject patient = tempPatientData.getJSONObject(patientIncrement);
-                    namePatientAndAge(ageLabel.get(j));
-                   // patientCode = patientHelper.patientRegisterTest(this, patient, driver, wait, "Patient Registration");
-                    logSummary.append("✅ Patient Registered: ").append(patientCode).append(" | ");
-                    menuPanelClick("Dashboard");
-                    threadTimer(3000);
-                    if (patientCode != null) {
-                        isAppoinmentCreated = patientHelper.createAppointment(this, patient, driver, wait, "Create Appointment", patientCode);
-                        logSummary.append("✅ Appointment Created: ").append(patientCode).append(" | ");
-                        if (isAppoinmentCreated) {
-                            threadTimer(3000);
-                            isAppoinmentCheckin = patientHelper.checkingAppointmentTest(this, driver, wait, "View Appointments", patientCode);
-                            if (isAppoinmentCheckin) {
-                                logSummary.append("✅ Checked In | ");
-
-                                addPrescriptionTest();
-                                logSummary.append("✅ Prescription Added | ");
-                                pharmacyBillTest();
-                                if(!isPharmacyBillHold) {
-                                    logSummary.append("✅ Pharmacy Bill Paid | ");
-                                    threadTimer(4000);
-                                    PharmacyView();
-                                    logSummary.append("✅ Pharmacy Viewed | ");
-                                }
-                                else {
-                                    break;
-                                }
-                                menuPanelClick("Dashboard");
-                            } else {
-                                logSummary.append("❌ Appointment Check in Issue");
-                            }
-                            logSummary.append("✅ Loop Completed");
-                        } else {
-                            logSummary.append("❌ Appointment Creation Failed. Retrying...");
-                        }
-                    } else {
-                        logSummary.append("❌ Patient Code is null");
-                    }
-                    logSummary.append(" | Completed ")
-                            .append(isAgeInMonth ? "Age In Month ✅" : "")
-                            .append(isAgeInYear ? "Age in Year ✅" : "").toString();
-                    DBUtil.insertScenario(logSummary.toString(), "Success");
-                    isLoginSuccessful=true;
-                }
-                logSummaryList.add(logSummary.toString());
-            }
-        }
     }
 
     private void namePatientAndAge(String ageLabel) {

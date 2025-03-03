@@ -17,9 +17,23 @@ public class CreateSeperateBillOP extends LoginAndLocationTest {
     public void createBill() {
         // Check if login was successful
         if (isLoginSuccessful) {
+
             // Navigate to the OP menu
             menuPanelClick("OP");
-            WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+            By opBillsLocator = By.xpath("//li[contains(@class, 'breadcrumb-item') and contains(text(), 'OP Bills')]");
+
+            while (driver.findElements(opBillsLocator).isEmpty()) {
+                System.out.println("Waiting for OP Bills element...");
+                try {
+                    Thread.sleep(500); // Small delay to prevent CPU overload
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            System.out.println("OP Bills element found!");
+            System.out.println("Create Seprate bill configure");
+            wait = new WebDriverWait(driver, Duration.ofSeconds(55));
 
             // Wait for the page to load and click the "Create New Bill" button
             threadTimer(2000);
@@ -59,10 +73,24 @@ public class CreateSeperateBillOP extends LoginAndLocationTest {
 
     // Helper method to click the "Create New Bill" button
     private void clickCreateNewBillButton(WebDriverWait wait) {
-        WebElement createNewBillButton = driver.findElement(By.id("opBIllCrBtn"));
+
+        // Wait for button to be clickable
+        WebElement createNewBillButton = wait.until(ExpectedConditions.elementToBeClickable(By.id("opBIllCrBtn")));
+
+// Scroll to button
         ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);", createNewBillButton);
-        threadTimer(1000); // Small wait to ensure it's visible
-        createNewBillButton.click();
+
+// Small delay before clicking
+        try {
+            Thread.sleep(500);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+
+// Click using JavaScript to avoid interception
+        ((JavascriptExecutor) driver).executeScript("arguments[0].click();", createNewBillButton);
+
+
     }
 
     // Helper method to check if the Patient Search label is visible
