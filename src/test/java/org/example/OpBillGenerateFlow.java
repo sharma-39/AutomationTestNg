@@ -85,6 +85,10 @@ public class OpBillGenerateFlow extends LoginAndLocationTest {
         System.out.println("Total Pages: " + totalPages);
         System.out.println("Patient Code: " + patientCode);
 
+        searchButtonClick();
+        searchFieldPatientCode(patientCode);
+
+        System.out.println("Successfully selected"+);
         // Find the row with the patient code and process billing
         if (findRow(patientCode, "View Bill", "Success", totalPages)) {
             if (statusText.equals("Partially Paid")) {
@@ -269,9 +273,10 @@ public class OpBillGenerateFlow extends LoginAndLocationTest {
                 }
             }
 
-            if (!isFound && currentPage < totalPages) {
+            if (!isFound) {
                 try {
                     currentPage++; // Increment before clicking
+                    System.out.println("click index of page number"+currentPage);
                     WebElement pageNo = wait.until(ExpectedConditions.elementToBeClickable(
                             By.xpath("//ul[contains(@class, 'ngx-pagination')]//li/a/span[text()='" + currentPage + "']")
                     ));
@@ -331,5 +336,54 @@ public class OpBillGenerateFlow extends LoginAndLocationTest {
             clickElement(By.xpath("//button[contains(text(), 'Cancel Bill')]")); // Click cancel bill
             System.out.println("Cancellation reason entered successfully!");
         }
+    }
+
+
+    private void searchButtonClick()
+    {
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+
+// Wait until the button is clickable
+        WebElement searchButton = wait.until(ExpectedConditions.elementToBeClickable(
+                By.xpath("//button[@title='Search']")
+        ));
+
+// Scroll into view
+        ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);", searchButton);
+        try {
+            Thread.sleep(500); // Small wait for smooth UI
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+
+// Click the button using JavaScript to avoid interception issues
+        ((JavascriptExecutor) driver).executeScript("arguments[0].click();", searchButton);
+    }
+
+
+    private void  searchFieldPatientCode(String patientCode)
+    {
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+
+// Wait for the input field inside the "Patient Code" column
+        WebElement patientCodeInput = wait.until(ExpectedConditions.elementToBeClickable(
+                By.xpath("//th[@title='Patient Code']//input[contains(@class, 'form-control')]")
+        ));
+
+// Scroll into view (if needed)
+        ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);", patientCodeInput);
+        try {
+            Thread.sleep(500); // Small delay for UI adjustment
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+
+// Clear any existing text and enter new value
+        patientCodeInput.clear();
+        patientCodeInput.sendKeys(patientCode); // Replace with actual Patient Code
+
+        patientCodeInput.sendKeys(Keys.ENTER);
+
+        threadTimer(3000);
     }
 }

@@ -21,11 +21,10 @@ public class PatientFlowHelper {
         String age = patient.getString("patientAge");
         String phone = patient.getString("patientPhone");
         String gender = patient.getString("gender");
-
         String patientCode;
         baseTest.menuPanelClick(panel);
         try {
-
+            
             patientFormSubmit(driver,wait);
             errorMessageHandle(driver,wait);
             fillInputField(driver, wait, "firstName", name);
@@ -47,6 +46,7 @@ public class PatientFlowHelper {
 
             patientFormSubmit(driver, wait);
 
+            Assert.fail("check");
             //500 error handle and failed backend connection and deployment scerio etc
             String messageText = handleRuntimeError("Patient Registeration",wait);
 
