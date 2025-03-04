@@ -13,6 +13,7 @@ import java.time.Month;
 import java.time.format.TextStyle;
 import java.util.List;
 import java.util.Locale;
+import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
 public class PatientRegisterationForm extends LoginAndLocationTest {
@@ -21,125 +22,255 @@ public class PatientRegisterationForm extends LoginAndLocationTest {
     public void processtempPatientData() throws IOException, InterruptedException {
 
         if (isLoginSuccessful) {
-            for (int i = 0; i < 1; i++) {
 
 
-                menuPanelClick("Patient Registration");
-
-                List<WebElement> inputFields = driver.findElements(By.xpath("//input[@formcontrolname]"));
-                //first name fill
-                fillInputField(driver, wait, "firstName", "Sharma");
-
-                fillInputField(driver, wait, "lastName", "M");
-
-                String title = "D/O";
-                selectField("title", title);
-                String bloodGroup="A +ve";
-                selectField("bloodGroup",bloodGroup);
-
-                if (title != null) {
-                    fillInputField(driver, wait, "guardianName", "Intulogic");
-                }
-
-                focusScreenScroll("Surname");
-                String[] date={"05-05-1994","07-07-1995"};
+            menuPanelClick("Patient Registration");
 
 
+            WebElement salutationDropdown = wait.until(ExpectedConditions.elementToBeClickable(
+                    By.cssSelector("select[formcontrolname='salutation']")));
+            JavascriptExecutor js = (JavascriptExecutor) driver;
+            String salutation = "Mr.";
 
 
-                System.out.println("loop");
-                handleDatePickerInLoop("05-05-1994","patRegDob12");
+            js.executeScript("arguments[0].value='" + salutation + "'; arguments[0].dispatchEvent(new Event('change'));", salutationDropdown);
+            System.out.println("Salutation 'Mr.' selected using JavaScript.");
+
+            // selectField("salutation","Mr.");
+            String firstName = "SharmaMurugaiyan";
+            String lastName = "M";
+            String title = "D/O";
+
+            String bloodGroup = "A +ve";
+
+            String guardianName = "Intulogic";
 
 
-// Use driver.findElements to see if any open datepicker exists
+            String dob = "05-05-1994";
 
-                List<WebElement> openDatepickers = driver.findElements(By.cssSelector("div.daterangepicker"));
-                if (!openDatepickers.isEmpty()) {
-                    System.out.println("A datepicker is open.");
-                    // Forcefully close the date picker
-                    JavascriptExecutor js = (JavascriptExecutor) driver;
-                    js.executeScript("document.querySelector('div.daterangepicker').style.display = 'none';");
-                } else {
-                    System.out.println("No datepicker is open.");
-                }
-                openDatepickers = driver.findElements(By.cssSelector("div.daterangepicker"));
-                if (!openDatepickers.isEmpty()) {
-                    System.out.println("A datepicker is open.");
-                    // Forcefully close the date picker
-                    JavascriptExecutor js = (JavascriptExecutor) driver;
-                    js.executeScript("document.querySelector('div.daterangepicker').style.display = 'none';");
-                } else {
-                    System.out.println("No datepicker is open.");
-                }
+            fillInputField(driver, wait, "firstName", firstName);
 
-                new Actions(driver).moveByOffset(0, 0).click().perform();
-                threadTimer(1000); // Wait for 1 second
+            fillInputField(driver, wait, "lastName", lastName);
 
 
-                if (getAgeFromAgeField() >= 18) {
+            selectField("title", title);
 
-                    fillInputField(driver, wait, "phoneNumber", "9791310502");
-                } else {
-                    fillInputField(driver, wait, "parentName", "Murugaiyan");
+            selectField("bloodGroup", bloodGroup);
 
-                    fillInputField(driver, wait, "parentNumber", "9484848485");
+            if (title != null) {
 
+                fillInputField(driver, wait, "guardianName", guardianName);
+            }
 
-                }
+            focusScreenScroll("Surname");
 
-                selectRadioButton(driver, wait, "gender", "Male");
-
-                selectRadioButton(driver,wait,"maritalStatus","Married".toLowerCase());
-
-                fillInputField(driver,wait,"address","77 west street srinivasonnalur kumbakonam");
-                fillInputField(driver, wait, "email", "sharmamurugaiyan@gmail.com");
-                selectSelectDropdown(driver, wait, "cityChange", "Goa");
-                //selectFromMatSelectDropdown(driver, wait, "mat-select-0", "Mapusa");
-
-                matSelectDropDown(driver, wait, "city", "Margao");
-                matSelectDropDown(driver, wait, "caseType", "F CVT");
+            handleDatePickerInLoop(dob, "patRegDob12");
 
 
-                fillInputField(driver,wait,"postalCode","612204");
+            if (getAgeFromAgeField() >= 18) {
 
+                String phoneNumber = "9791310502";
+                fillInputField(driver, wait, "phoneNumber", phoneNumber);
+            } else {
+                String parentName = "Murugaiyan";
+                fillInputField(driver, wait, "parentName", parentName);
 
-                fillInputField(driver,wait,"incharge1Name","Intulogic");
-
-                selectField("incharge1Relationship", "Brother" );
-
-                fillInputField(driver,wait,"incharge1Phone","9791310502");
-
-                fillInputField(driver,wait,"incharge1Email","sharmamurugaiyan@gmail.com");
-
-                selectRadioButton(driver,wait,"nri","Indian");
-
-                fillInputField(driver,wait,"aadharNumber","267323633773");
-                fillInputField(driver,wait,"knownAllergies","application descripition");
-                fillInputField(driver,wait,"previousMedicalIssue","good condition");
-
-                String insuranceSelect="Yes";
-
-                selectRadioButton(driver,wait,"insurance",insuranceSelect);
-
-
-                focusScreenScroll("Expiry Date");
-
-                if(insuranceSelect.equals("Yes"))
-                {
-                    //  selectSelectDropdown(driver,wait,"insuranceProviderId"," ABC life insurance private");
-                    fillInputField(driver,wait,"insuranceCode","8273827383");
-                    handleDatePickerInLoop("10-10-2026","patient-registration2");
-                }
+                String parentNumber = "9883834874";
+                fillInputField(driver, wait, "parentNumber", parentNumber);
 
 
             }
-// Loop through each input field and print its name
+
+            String gender = "Male";
+
+            String maritalStatus = "Married".toLowerCase();
+            selectRadioButton(driver, wait, "gender", gender);
+
+            selectRadioButton(driver, wait, "maritalStatus", maritalStatus);
+
+            String address = "77 west street srinivasonnalur kumbakonam";
+            fillInputField(driver, wait, "address", address);
+            String emailId = "sharmamurugaiyan@gmail.com";
+            fillInputField(driver, wait, "email", emailId);
+            String state = "Tamil Nadu";
+            selectSelectDropdown(driver, wait, "cityChange", state);
+            //selectFromMatSelectDropdown(driver, wait, "mat-select-0", "Mapusa");
+
+            String city = "Chennai";
+            matSelectDropDown(driver, wait, "city", city);
+            String caseType = "F CVT";
+            matSelectDropDown(driver, wait, "caseType", caseType);
+
+
+            String diagnosis = "fill any diagnonsis";
+            String postalCode = "612204";
+            fillInputField(driver, wait, "diagnosis", diagnosis);
+            fillInputField(driver, wait, "postalCode", postalCode);
+
+
+            String inchargeName = "Test";
+            fillInputField(driver, wait, "incharge1Name", inchargeName);
+
+            String inchargeRelationship="Brother";
+            selectField("incharge1Relationship", inchargeRelationship);
+
+            String inchargePhoneNo="9477477478";
+            fillInputField(driver, wait, "incharge1Phone", inchargePhoneNo);
+
+            String inchargeEmail="test@gmail.com";
+            fillInputField(driver, wait, "incharge1Email", inchargeEmail);
+
+            String citizian="Indian";
+            selectRadioButton(driver, wait, "nri", "Indian");
+            if(citizian.equals("Indian")) {
+                String aadhar = "267323633773";
+                fillInputField(driver, wait, "aadharNumber", aadhar);
+            }
+            String knownAllergies = "application ";
+            fillInputField(driver, wait, "knownAllergies", knownAllergies);
+            String previousMedicalIssue = "good";
+            fillInputField(driver, wait, "previousMedicalIssue", previousMedicalIssue);
+
+            String insuranceSelect = "Yes";
+
+            selectRadioButton(driver, wait, "insurance", insuranceSelect);
+
+
+            focusScreenScroll("Expiry Date");
+
+            if (insuranceSelect.equals("Yes")) {
+                //  selectSelectDropdown(driver,wait,"insuranceProviderId"," ABC life insurance private");
+                String insuranceCode = "8273827383";
+                fillInputField(driver, wait, "insuranceCode", insuranceCode);
+                selectInsuranceId();
+                String expiryDateInsurance = "10-10-2025";
+                fillExpiryDate(driver, wait, expiryDateInsurance);
+
+
+            }
+
+
+            String notes = "testing purpose";
+            fillInputField(driver, wait, "notes", notes);
+
+
+            WebElement submitButton = wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//button[contains(text(),'Submit')]")));
+            submitButton.click();
+
+
         }
+    }
+
+    private void fillExpiryDate(WebDriver driver, WebDriverWait wait, String date) {
+
+        String[] dateFormat = date.split("-");
+        String dateText = dateFormat[0]; // Day
+        String monthText = dateFormat[1]; // Month (MM)
+        String yearText = dateFormat[2]; // Year (YYYY)
+
+
+        WebElement expiryDateField = driver.findElement(By.id("patient-registration2"));
+        expiryDateField.click();
+
+        // Wait for the date picker to be visible
+        WebElement dateRangePicker = wait.until(ExpectedConditions.visibilityOfElementLocated(
+                By.cssSelector("div.daterangepicker.ltr.auto-apply.single.opensright.show-calendar")
+        ));
+
+        // Use JavaScript to highlight the container (optional for debugging)
+        JavascriptExecutor js = (JavascriptExecutor) driver;
+        js.executeScript("arguments[0].style.border='2px solid purple'", dateRangePicker);
+
+        // Locate the left calendar which is displayed
+        WebElement leftCalendar = dateRangePicker.findElement(By.cssSelector("div.drp-calendar.left.single"));
+        js.executeScript("arguments[0].style.border='2px solid red'", leftCalendar);
+
+        // Locate the month select dropdown inside the calendar header
+        WebElement monthSelectElement = leftCalendar.findElement(By.cssSelector("select.monthselect"));
+
+        // Click on the dropdown using JavaScript if normal click fails
+        try {
+            monthSelectElement.click();
+            System.out.println("Clicked month dropdown using normal click.");
+            Select monthSelect = new Select(monthSelectElement);
+            monthSelect.selectByVisibleText(convertMMToMonth(monthText));
+
+        } catch (Exception e) {
+            js.executeScript("arguments[0].click();", monthSelectElement);
+            System.out.println("Clicked month dropdown using JavaScript.");
+            js.executeScript("arguments[0].value='" + convertMMToMonth(monthText) + "'; arguments[0].dispatchEvent(new Event('change'));", monthSelectElement);
+            System.out.println("Month 'Apr' selected using JavaScript.");
+        }
+
+        System.out.println("click month");
+        threadTimer(2500);
+        // Change to your desired month
+        // Locate the year select dropdown inside the calendar header
+
+
+        System.out.println("part 1");
+// **Re-locate the year dropdown after UI refresh**
+        WebElement yearSelectElement = leftCalendar.findElement(By.cssSelector("select.yearselect"));
+        js.executeScript("arguments[0].style.display='block';", yearSelectElement);
+
+        System.out.println("part 1");
+        try {
+            yearSelectElement.click();
+            System.out.println("Clicked year dropdown using normal click.");
+        } catch (Exception e) {
+            js.executeScript("arguments[0].click();", yearSelectElement);
+            System.out.println("Clicked year dropdown using JavaScript.");
+        }
+        System.out.println("part 2");
+
+// Wait for year options to load
+        wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("select.yearselect option")));
+
+// **Re-locate the year dropdown again**
+        yearSelectElement = leftCalendar.findElement(By.cssSelector("select.yearselect"));
+        Select yearSelect = new Select(yearSelectElement);
+
+        try {
+            yearSelect.selectByValue(yearText);
+            System.out.println("Year '" + yearText + "' selected.");
+        } catch (Exception e) {
+            js.executeScript("arguments[0].value='2026'; arguments[0].dispatchEvent(new Event('change'));", yearSelectElement);
+            System.out.println("Year '2026' selected using JavaScript.");
+        }
+
+
+        // Define the desired date to select
+        String desiredDate = dateText; // Change this to the date you want
+
+// Wait for the date picker to be visible
+        WebElement datePicker = wait.until(ExpectedConditions.visibilityOfElementLocated(
+                By.cssSelector("div.daterangepicker.ltr.auto-apply.single.opensright.show-calendar")
+        ));
+
+// Locate all available dates in the calendar
+        List<WebElement> dateElements = datePicker.findElements(By.cssSelector("td.available"));
+
+// Loop through the dates and click the desired one
+        boolean dateFound = false;
+        for (WebElement dateElement : dateElements) {
+            if (dateElement.getText().trim().equals(desiredDate)) {
+                dateElement.click();
+                System.out.println("Clicked date: " + desiredDate);
+                dateFound = true;
+                break;
+            }
+        }
+
+// If the date was not found, print an error
+        if (!dateFound) {
+            System.out.println("Date not found: " + desiredDate);
+        }
+
     }
 
     private void focusScreenScroll(String text) {
         String textToFind = "Your Text Here";  // Replace with the actual text
-        WebElement element = driver.findElement(By.xpath("//*[contains(text(), '"+text+"')]"));
+        WebElement element = driver.findElement(By.xpath("//*[contains(text(), '" + text + "')]"));
 
 // Scroll to the element and bring it into the center of the screen
         ((JavascriptExecutor) driver).executeScript(
@@ -178,7 +309,6 @@ public class PatientRegisterationForm extends LoginAndLocationTest {
 
         return Integer.parseInt(ageValue);
     }
-
 
 
     public String convertMMToMonth(String monthNumber) {
@@ -297,5 +427,90 @@ public class PatientRegisterationForm extends LoginAndLocationTest {
         actions.moveByOffset(0, 0).click().perform();
     }
 
+    public void handleDatePicker(String date, String id) {
+        resetDatePicker();
+        Actions actions = new Actions(driver);
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+
+        // Parse the date in DD-MM-YYYY format.
+        String[] dateParts = date.split("-");
+        String dayText = dateParts[0];    // Day
+        String monthText = dateParts[1];  // Month (MM)
+        String yearText = dateParts[2];   // Year (YYYY)
+
+        try {
+            // Step 1: Click the date picker field to open the calendar
+            WebElement datePickerContainer = wait.until(ExpectedConditions.elementToBeClickable(By.id(id)));
+            System.out.println("Clicked the date picker field: " + id);
+
+            // Step 2: Find and click the <i> element with class 'fa fa-calendar'
+            WebElement calendarIcon = datePickerContainer.findElement(By.xpath(".//i[contains(@class, 'fa-calendar')]"));
+            calendarIcon.click();
+            System.out.println("Clicked the calendar icon (fa fa-calendar)");
+
+
+            // Step 3: Find the <span> inside the datePickerContainer
+            WebElement spanElement = datePickerContainer.findElement(By.xpath(".//span"));
+            System.out.println("Text inside <span>: " + spanElement.getText());
+
+            // Step 4: Select the Year
+            WebElement yearDropdown = wait.until(ExpectedConditions.visibilityOfElementLocated(
+                    By.cssSelector("select.yearselect")));
+            new Select(yearDropdown).selectByValue(yearText);
+
+            // Step 5: Select the Month
+            WebElement monthDropdown = wait.until(ExpectedConditions.visibilityOfElementLocated(
+                    By.cssSelector("select.monthselect")));
+            String monthName = convertMMToMonth(monthText);
+            WebElement monthOption = monthDropdown.findElement(By.xpath(".//option[text()='" + monthName + "']"));
+            monthOption.click();
+
+            // Step 6: Select the Day
+            WebElement dayElement = wait.until(ExpectedConditions.elementToBeClickable(
+                    By.xpath("//td[text()='" + Integer.parseInt(dayText) + "']")));
+            dayElement.click();
+
+            // Step 7: Close the date picker
+            actions.sendKeys(Keys.ESCAPE).perform();
+            actions.moveByOffset(0, 0).click().perform();
+
+            System.out.println("Selected date: " + date + " for date picker ID: " + id);
+
+        } catch (StaleElementReferenceException e) {
+            System.out.println("Stale element encountered. Retrying...");
+            handleDatePicker(date, id); // Retry the operation
+        } catch (Exception e) {
+            System.out.println("An error occurred: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
     // Helper method to convert month number to month name
+
+    private void resetDatePicker() {
+        Actions actions = new Actions(driver);
+        actions.sendKeys(Keys.ESCAPE).perform(); // Close the date picker if open.
+        actions.moveByOffset(0, 0).click().perform(); // Click outside to ensure it's closed.
+    }
+
+    private void selectInsuranceId() {// Locate the dropdown element
+        WebElement insuranceDropdown = wait.until(ExpectedConditions.elementToBeClickable(
+                By.cssSelector("select[formcontrolname='insuranceProviderId']")));
+
+// Create a Select object
+        Select select = new Select(insuranceDropdown);
+
+// Get all available options
+        List<WebElement> options = select.getOptions();
+
+// Select a random option (excluding the first one, which is "Select Insurance Provider")
+        if (options.size() > 1) {
+            Random rand = new Random();
+            int randomIndex = rand.nextInt(options.size() - 1) + 1; // Avoid selecting index 0
+            select.selectByIndex(randomIndex);
+            System.out.println("Selected Insurance Provider: " + options.get(randomIndex).getText());
+        } else {
+            System.out.println("No available options to select.");
+        }
+    }
 }
