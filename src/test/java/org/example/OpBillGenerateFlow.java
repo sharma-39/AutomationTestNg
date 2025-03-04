@@ -88,7 +88,7 @@ public class OpBillGenerateFlow extends LoginAndLocationTest {
         searchButtonClick();
         searchFieldPatientCode(patientCode);
 
-        System.out.println("Successfully selected"+);
+        System.out.println("Successfully selected");
         // Find the row with the patient code and process billing
         if (findRow(patientCode, "View Bill", "Success", totalPages)) {
             if (statusText.equals("Partially Paid")) {

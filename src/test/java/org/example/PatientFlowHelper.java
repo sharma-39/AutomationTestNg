@@ -24,7 +24,7 @@ public class PatientFlowHelper {
         String patientCode;
         baseTest.menuPanelClick(panel);
         try {
-            
+
             patientFormSubmit(driver,wait);
             errorMessageHandle(driver,wait);
             fillInputField(driver, wait, "firstName", name);
@@ -112,6 +112,7 @@ public class PatientFlowHelper {
 
 
     }
+
 
 
 
