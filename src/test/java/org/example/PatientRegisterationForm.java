@@ -7,7 +7,6 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.testng.Assert;
-import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
@@ -19,7 +18,7 @@ import java.util.*;
 
 public class PatientRegisterationForm extends LoginAndLocationTest {
 
-    static int scanerio = 1;
+    static int scenario = 1;
     private JSONObject patientData;
     Map<String, Boolean> mandatoryFieldsMap = new LinkedHashMap<>();
 
@@ -167,7 +166,7 @@ public class PatientRegisterationForm extends LoginAndLocationTest {
             // Print the scenario description, data, and expected result
             System.out.println("\n=========================================");
             System.out.println("Scenario Description: " + getScenarioDescription(patientData));
-            System.out.println("Testing Scenario with Data: " + scanerio);
+            System.out.println("Testing Scenario with Data: " + scenario);
             System.out.println("Expected Result: " + (expectedResult ? "Success" : "Failure"));
             System.out.println("=========================================");
 
@@ -207,10 +206,10 @@ public class PatientRegisterationForm extends LoginAndLocationTest {
                 System.out.println("Error during form submission: " + e.getMessage());
                 e.printStackTrace();
             }
-            if (scanerio == 7 || scanerio == 8) {
+            if (scenario == 7 || scenario == 8) {
                 JavascriptExecutor js = (JavascriptExecutor) driver;
                 js.executeScript("location.reload()");
-            } else if (scanerio == 6 || scanerio ==10) {
+            } else if (scenario == 6 || scenario ==10) {
                 findMantatoryFields();
 
                 threadTimer(2000);
@@ -223,7 +222,7 @@ public class PatientRegisterationForm extends LoginAndLocationTest {
                 System.out.println("Reset clicked");
                 reset.click();
             }
-            scanerio++;
+            scenario++;
             threadTimer(3000);
         }
     }
@@ -231,58 +230,31 @@ public class PatientRegisterationForm extends LoginAndLocationTest {
     private String getScenarioDescription(JSONObject patientData) {
 
 
-        if (scanerio == 1) {
-            return "Scenario 1: If the patient's age is less than 18, parent details are filled.";
-        } else if (scanerio == 2) {
-            return "Scenario 2: If the patient's age is 18 or older, the phone number is filled.";
-
-        } else if (scanerio == 3) {
-            return "Scenario 3: If the title is NULL, all fields are filled.";
-        } else if (scanerio == 4) {
-            return "Scenario 4: If the title is \"D/O\", the guardian name is filled.";
-        } else if (scanerio == 5) {
+        if (scenario == 1) {
+            return "Scenario 1: If the patient's age is less than 18, parent details must be filled.";
+        } else if (scenario == 2) {
+            return "Scenario 2: If the patient's age is 18 or older, the phone number must be provided.";
+        } else if (scenario == 3) {
+            return "Scenario 3: If the title is NULL, all required fields must be filled.";
+        } else if (scenario == 4) {
+            return "Scenario 4: If the title is 'D/O', the guardian's name must be provided.";
+        } else if (scenario == 5) {
             return "Scenario 5: Only mandatory fields are filled.";
-        } else if (scanerio == 6) {
+        } else if (scenario == 6) {
             return "Scenario 6: If mandatory fields are missing, the form highlights errors.";
-        } else if (scanerio == 7) {
-            return "Scenario 7: If insurance is selected as \"Yes\", insurance fields are filled.";
-        } else if (scanerio == 8) {
-            return "Scenario 8: If insurance is selected as \"No\", insurance fields remain empty.";
-        }else if(scanerio==9)
-        {
-            return "Scenario 9: 500 error throw patient registeration ";
-        } else if (scanerio==10) {
-            return "Scenario 10: email and number validator ";
+        } else if (scenario == 7) {
+            return "Scenario 7: If insurance is selected as 'Yes', insurance details must be provided.";
+        } else if (scenario == 8) {
+            return "Scenario 8: If insurance is selected as 'No', insurance fields remain empty.";
+        } else if (scenario == 9) {
+            return "Scenario 9: A 500 error is thrown during patient registration.";
+        } else if (scenario == 10) {
+            return "Scenario 10: Email and phone number validation is enforced.";
         } else {
-            return "Unknown Scenario";
+            return "Unknown Scenario: Please provide a valid scenario number.";
         }
+
     }
-
-    private int getAgeFromDOB(String dob) {
-        // Extract year from DOB (format: DD-MM-YYYY)
-        int birthYear = Integer.parseInt(dob.split("-")[2]);
-        int currentYear = Calendar.getInstance().get(Calendar.YEAR);
-        return currentYear - birthYear;
-    }
-
-    private void validateMantatoryFields() {
-        String[] allFields = {
-                "salutation", "firstName", "lastName", "title", "bloodGroup", "guardianName",
-                "dob", "phoneNumber", "parentName", "parentNumber", "gender", "maritalStatus",
-                "address", "email", "state", "city", "caseType", "diagnosis", "postalCode",
-                "inchargeName", "inchargeRelationship", "inchargePhone", "inchargeEmail",
-                "citizian", "aadharNumber", "knownAllergies", "previousMedicalIssue",
-                "insurance", "insuranceCode", "expiryDateInsurance", "notes"
-        };
-
-
-//        // **Print the HashMap**
-//        System.out.println("\nFinal Mandatory Fields Map:");
-//        for (Map.Entry<String, Boolean> entry : mandatoryFieldsMap.entrySet()) {
-//            System.out.println("Field: " + entry.getKey() + " -> Required: " + entry.getValue());
-//        }
-    }
-
     private void fillAllFieldsFromJSON(JSONObject patientData) throws InterruptedException {
         String[] allFields = {
                 "salutation", "firstName", "lastName", "title", "bloodGroup", "guardianName",
