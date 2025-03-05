@@ -17,6 +17,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class BaseTest {
@@ -57,8 +58,14 @@ public class BaseTest {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+         userDetails = Arrays.asList(
+//                new UserDetails("incorrectUsername", "correctPassword"), // Username Incorrect
+//                new UserDetails("FAC-973-support", "incorrectPassword"), // Username and Password Incorrect
+//                new UserDetails("Sharma", "correctPassword") ,
+                new UserDetails("scott", "scott")
+                // Account Locked (after multiple attempts)
+        );
 
-        userDetails.add(new UserDetails("scott", "scott"));
 
         ageLabel.add("Age In Years And Months");
         ageLabel.add("Age In Years");

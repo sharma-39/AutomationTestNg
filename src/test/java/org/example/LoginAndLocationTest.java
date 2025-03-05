@@ -26,7 +26,7 @@ public class LoginAndLocationTest extends BaseTest {
             WebElement resultElement=null;
 
 
-            for (int attempt = 1; attempt <= 3; attempt++) {
+            for (int attempt = 1; attempt <= 5; attempt++) {
                 System.out.println("Attempt " + attempt + " for user: " + userDetails.get(i).getUserName());
 
                 WebElement usernameField = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("signin-email")));

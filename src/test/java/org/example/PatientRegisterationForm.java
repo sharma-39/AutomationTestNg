@@ -6,6 +6,9 @@ import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
+import org.testng.Assert;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
@@ -16,92 +19,353 @@ import java.util.*;
 
 public class PatientRegisterationForm extends LoginAndLocationTest {
 
+    static int scanerio = 1;
     private JSONObject patientData;
-    Map<String, Boolean> mandatoryFieldsMap = new HashMap<>();
+    Map<String, Boolean> mandatoryFieldsMap = new LinkedHashMap<>();
 
+    @DataProvider(name = "patientDataProvider")
+    public Object[][] getPatientData() {
+        return new Object[][]{
+                // Scenario 1: DOB < 18 → Fill Parent Details
+                {createPatientData(
+                        "Mr.", "Test Name"+generateRandomFirstName(5)+generateRandomFirstName(5), "M", "D/O", "A +ve", "Intulogic", "05-05-2010", "9791310502",
+                        "Murugaiyan", "9883834874", "Male", "Married", "77 west street srinivasonnalur kumbakonam",
+                        "sharmamurugaiyan@gmail.com", "Tamil Nadu", "Chennai", "F CVT", "fill any value", "612204",
+                        "Test", "Brother", "9477477478", "test@gmail.com", "Indian", "267323633773", "application", "good",
+                        null, null, null, "testing purpose"
+                ), true},
+                // Scenario 2: DOB ≥ 18 → Fill Phone Number
+                {createPatientData(
+                        "Mr.", "Test Name"+generateRandomFirstName(5), "M", "D/O", "A +ve", "Intulogic", "05-05-1994", "9791310502",
+                        null, null, "Male", "Married", "77 west street srinivasonnalur kumbakonam",
+                        "sharmamurugaiyan@gmail.com", "Tamil Nadu", "Chennai", "F CVT", "fill any diagnonsis", "612204",
+                        null, null, null, null, "Indian", "267323633773", "application", "good",
+                        null, null, null, "testing purpose"
+                ), true},
+                // Scenario 3: Title is NULL → Fill all fields
+                {createPatientData(
+                        "Mr.", "Test Name"+generateRandomFirstName(5), "M", "Cancel", "A +ve", null, "05-05-1994", "9791310502",
+                        null, null, "Male", "Married", "77 west street srinivasonnalur kumbakonam",
+                        "sharmamurugaiyan@gmail.com", "Tamil Nadu", "Chennai", "F CVT", "fill any diagnonsis", "612204",
+                        null, null, null, null, "Indian", "267323633773", "application", "good",
+                        null, null, null, "testing purpose"
+                ), true},
+                // Scenario 4: Title = "D/O" → Fill Guardian Name
+                {createPatientData(
+                        "Mr.", "Test Name"+generateRandomFirstName(5), "M", "D/O", "A +ve", "Guardian Test", "05-05-1994", "9791310502",
+                        null, null, "Male", "Married", "77 west street srinivasonnalur kumbakonam",
+                        "sharmamurugaiyan@gmail.com", "Tamil Nadu", "Chennai", "F CVT", "fill any diagnonsis", "612204",
+                        null, null, null, null, "Indian", "267323633773", "application", "good",
+                        null, null, null, "testing purpose"
+                ), true},
+                // Scenario 5: Fill Only Mandatory Fields
+                {createPatientData(
+                        null, "Test Name"+generateRandomFirstName(5), null, null, null, null, "05-05-1994", "9791310502",
+                        null, null, "Male", null, null,
+                        null, "Tamil Nadu", "Chennai", null, null, null,
+                        null, null, null, null, null, null, null, null,
+                        null, null, null, null
+                ), true},
+                // Scenario 6: Fill Without Mandatory Fields (Error Highlighting)
+                {createPatientData(
+                        "Mr.", null, "M", "Cancel", null, null, null, null,
+                        null, null, null, null, null, "emailid@gmail.com", null, null,
+                        null, null, null,
+                        null, null, null, null, null, null, null, null, null, null, null, "Testing errors"
+                ), false},
+                // Scenario 7: Select "Insurance = Yes" → Fill Insurance Fields
+                {createPatientData(
+                        "Mr.", "Test Name"+generateRandomFirstName(5), "M", "D/O", "A +ve", "Intulogic", "05-05-1994", "9791310502",
+                        null, null, "Male", "Married", "77 west street srinivasonnalur kumbakonam",
+                        "sharmamurugaiyan@gmail.com", "Tamil Nadu", "Chennai", "F CVT", "fill any diagnonsis", "612204",
+                        null, null, null, null, "Indian", "267323633773", "application", "good",
+                        "Yes", "8273827383", "10-10-2025", "testing purpose"
+                ), true},
+                // Scenario 8: Select "Insurance = No"
+                {createPatientData(
+                        "Mr.", "Test Name"+generateRandomFirstName(5), "M", "D/O", "A +ve", "Intulogic", "05-05-1994", "9791310502",
+                        null, null, "Male", "Married", "77 west street srinivasonnalur kumbakonam",
+                        "sharmamurugaiyan@gmail.com", "Tamil Nadu", "Chennai", "F CVT", "fill any diagnonsis", "612204",
+                        null, null, null, null, "Indian", "267323633773", "application", "good",
+                        "No", null, null, "testing purpose"
+                ), true}
+                // Scenario 9: 500 error throw patient registeration
+                , {createPatientData(
+                "Mr.", "Sharma", "M", "D/O", "A +ve", "Intulogic", "05-05-1994", "9791310502",
+                null, null, "Male", "Married", "77 west street srinivasonnalur kumbakonam",
+                "sharmamurugaiyan@gmail.com", "Tamil Nadu", "Chennai", "F CVT", "fill any diagnonsis", "612204",
+                null, null, null, null, "Indian", "267323633773", "application", "good",
+                "No", null, null, "testing purpose"
+        ), false}
+        };
+    }
 
+    private JSONObject createPatientData(
+            String salutation, String firstName, String lastName, String title, String bloodGroup, String guardianName,
+            String dob, String phoneNumber, String parentName, String parentNumber, String gender, String maritalStatus,
+            String address, String email, String state, String city, String caseType, String diagnosis, String postalCode,
+            String inchargeName, String inchargeRelationship, String inchargePhone, String inchargeEmail, String citizian,
+            String aadharNumber, String knownAllergies, String previousMedicalIssue, String insurance,
+            String insuranceCode, String expiryDateInsurance, String notes) {
 
-    public PatientRegisterationForm() {
-        // Initialize the JSON object with patient data
-        String jsonData = "{ \"salutation\": \"Mr.\", \"firstName\": \"SharmaMurugaiyan\", \"lastName\": \"M\", \"title\": \"D/O\", \"bloodGroup\": \"A +ve\", \"guardianName\": \"Intulogic\", \"dob\": \"05-05-1994\", \"phoneNumber\": \"9791310502\", \"parentName\": \"Murugaiyan\", \"parentNumber\": \"9883834874\", \"gender\": \"Male\", \"maritalStatus\": \"Married\", \"address\": \"77 west street srinivasonnalur kumbakonam\", \"email\": \"sharmamurugaiyan@gmail.com\", \"state\": \"Tamil Nadu\", \"city\": \"Chennai\", \"caseType\": \"F CVT\", \"diagnosis\": \"fill any diagnonsis\", \"postalCode\": \"612204\", \"inchargeName\": \"Test\", \"inchargeRelationship\": \"Brother\", \"inchargePhone\": \"9477477478\", \"inchargeEmail\": \"test@gmail.com\", \"citizian\": \"Indian\", \"aadharNumber\": \"267323633773\", \"knownAllergies\": \"application\", \"previousMedicalIssue\": \"good\", \"insuranceSelect\": \"Yes\", \"insuranceCode\": \"8273827383\", \"expiryDateInsurance\": \"10-10-2025\", \"notes\": \"testing purpose\" }";
-        patientData = new JSONObject(jsonData);
+        Map<String, Object> orderedMap = new LinkedHashMap<>();
+        orderedMap.put("salutation", salutation);
+        orderedMap.put("firstName", firstName);
+        orderedMap.put("lastName", lastName);
+        orderedMap.put("title", title);
+        orderedMap.put("bloodGroup", bloodGroup);
+        orderedMap.put("guardianName", guardianName);
+        orderedMap.put("dob", dob);
+        orderedMap.put("phoneNumber", phoneNumber);
+        orderedMap.put("parentName", parentName);
+        orderedMap.put("parentNumber", parentNumber);
+        orderedMap.put("gender", gender);
+        orderedMap.put("maritalStatus", maritalStatus);
+        orderedMap.put("address", address);
+        orderedMap.put("email", email);
+        orderedMap.put("state", state);
+        orderedMap.put("city", city);
+        orderedMap.put("caseType", caseType);
+        orderedMap.put("diagnosis", diagnosis);
+        orderedMap.put("postalCode", postalCode);
+        orderedMap.put("inchargeName", inchargeName);
+        orderedMap.put("inchargeRelationship", inchargeRelationship);
+        orderedMap.put("inchargePhone", inchargePhone);
+        orderedMap.put("inchargeEmail", inchargeEmail);
+        orderedMap.put("citizian", citizian);
+        orderedMap.put("aadharNumber", aadharNumber);
+        orderedMap.put("knownAllergies", knownAllergies);
+        orderedMap.put("previousMedicalIssue", previousMedicalIssue);
+        orderedMap.put("insurance", insurance);
+        orderedMap.put("insuranceCode", insuranceCode);
+        orderedMap.put("expiryDateInsurance", expiryDateInsurance);
+        orderedMap.put("notes", notes);
+
+        patientData = new JSONObject(orderedMap);
+        return new JSONObject(orderedMap);
     }
 
     @Test(priority = 3, dependsOnMethods = {"testLogin"})
-    public void processtempPatientData() throws IOException, InterruptedException {
+    public void runOpenMenu() {
         if (isLoginSuccessful) {
-
             menuPanelClick("Patient Registration");
-            WebElement submitButton = wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//button[contains(text(),'Submit')]")));
-            submitButton.click();
-            findMantatoryFields();
-            fillFormWithPatientData();
+        }
+    }
 
-            System.out.println("\nMandatory Fields Stored in HashMap:");
-            for (Map.Entry<String, Boolean> entry : mandatoryFieldsMap.entrySet()) {
-                System.out.println("FormControlName: " + entry.getKey() + " required:- " + entry.getValue());
+    @Test(priority = 4, dataProvider = "patientDataProvider")
+    public void processtempPatientData(JSONObject patientData, boolean expectedResult) throws IOException, InterruptedException {
+        if (isLoginSuccessful) {
+            // Print the scenario description, data, and expected result
+            System.out.println("\n=========================================");
+            System.out.println("Scenario Description: " + getScenarioDescription(patientData));
+            System.out.println("Testing Scenario with Data: " + scanerio);
+            System.out.println("Expected Result: " + (expectedResult ? "Success" : "Failure"));
+            System.out.println("=========================================");
+
+
+            //findMantatoryFields();
+            //validateMantatoryFields();
+
+            // Fill all fields in the form using the patientData JSON object
+            fillAllFieldsFromJSON(patientData);
+
+            // Submit the form
+            try {
+                WebElement submitButton = wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//button[contains(text(),'Submit')]")));
+                System.out.println("Submit button found and clickable.");
+
+                // Click the submit button
+                submitButton.click();
+                System.out.println("Form submitted.");
+
+                // Handle success or failure
+                if (expectedResult) {
+                    // Verify successful submission
+                    System.out.println("Verifying form submission success...");
+
+                    String messageText = handleRuntimeError("Patient", wait);
+                    if (messageText.contains("New Patient")) {
+
+                        System.out.println("Successfully register" + messageText);
+                    } else {
+                        // Handle validation errors
+                        System.out.println("Verifying form submission failure...");
+                        errorMessageHandle(driver, wait);
+                    }
+                }
+            } catch (Exception e) {
+                System.out.println("Error during form submission: " + e.getMessage());
+                e.printStackTrace();
+            }
+            if (scanerio == 7 || scanerio == 8) {
+                JavascriptExecutor js = (JavascriptExecutor) driver;
+                js.executeScript("location.reload()");
+            } else if (scanerio == 6) {
+                findMantatoryFields();
+
+                WebElement reset = wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//button[contains(text(),'Reset')]")));
+                System.out.println("Reset clicked");
+                reset.click();
+            } else {
+                WebElement reset = wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//button[contains(text(),'Reset')]")));
+                System.out.println("Reset clicked");
+                reset.click();
+            }
+            scanerio++;
+        }
+    }
+
+    private String getScenarioDescription(JSONObject patientData) {
+
+
+        if (scanerio == 1) {
+            return "Scenario 1: If the patient's age is less than 18, parent details are filled.";
+        } else if (scanerio == 2) {
+            return "Scenario 2: If the patient's age is 18 or older, the phone number is filled.";
+
+        } else if (scanerio == 3) {
+            return "Scenario 3: If the title is NULL, all fields are filled.";
+        } else if (scanerio == 4) {
+            return "Scenario 4: If the title is \"D/O\", the guardian name is filled.";
+        } else if (scanerio == 5) {
+            return "Scenario 5: Only mandatory fields are filled.";
+        } else if (scanerio == 6) {
+            return "Scenario 6: If mandatory fields are missing, the form highlights errors.";
+        } else if (scanerio == 7) {
+            return "Scenario 7: If insurance is selected as \"Yes\", insurance fields are filled.";
+        } else if (scanerio == 8) {
+            return "Scenario 8: If insurance is selected as \"No\", insurance fields remain empty.";
+        }else if(scanerio==9)
+        {
+            return "Scenario 9: 500 error throw patient registeration ";
+        }
+        else {
+            return "Unknown Scenario";
+        }
+    }
+
+    private int getAgeFromDOB(String dob) {
+        // Extract year from DOB (format: DD-MM-YYYY)
+        int birthYear = Integer.parseInt(dob.split("-")[2]);
+        int currentYear = Calendar.getInstance().get(Calendar.YEAR);
+        return currentYear - birthYear;
+    }
+
+    private void validateMantatoryFields() {
+        String[] allFields = {
+                "salutation", "firstName", "lastName", "title", "bloodGroup", "guardianName",
+                "dob", "phoneNumber", "parentName", "parentNumber", "gender", "maritalStatus",
+                "address", "email", "state", "city", "caseType", "diagnosis", "postalCode",
+                "inchargeName", "inchargeRelationship", "inchargePhone", "inchargeEmail",
+                "citizian", "aadharNumber", "knownAllergies", "previousMedicalIssue",
+                "insurance", "insuranceCode", "expiryDateInsurance", "notes"
+        };
+
+
+//        // **Print the HashMap**
+//        System.out.println("\nFinal Mandatory Fields Map:");
+//        for (Map.Entry<String, Boolean> entry : mandatoryFieldsMap.entrySet()) {
+//            System.out.println("Field: " + entry.getKey() + " -> Required: " + entry.getValue());
+//        }
+    }
+
+    private void fillAllFieldsFromJSON(JSONObject patientData) throws InterruptedException {
+        String[] allFields = {
+                "salutation", "firstName", "lastName", "title", "bloodGroup", "guardianName",
+                "dob", "phoneNumber", "parentName", "parentNumber", "gender", "maritalStatus",
+                "address", "email", "state", "city", "caseType", "diagnosis", "postalCode",
+                "inchargeName", "inchargeRelationship", "inchargePhone", "inchargeEmail",
+                "citizian", "aadharNumber", "knownAllergies", "previousMedicalIssue",
+                "insurance", "insuranceCode", "expiryDateInsurance", "notes"
+        };
+        System.out.println("Filling all fields from JSON data...");
+
+
+        for (String fieldName : allFields) {
+            if (patientData.has(fieldName)) {
+                Object fieldValue = patientData.get(fieldName);
+
+                // Skip NULL values
+                if (fieldValue != JSONObject.NULL) {
+                    System.out.println("Filling field: " + fieldName + " with value: " + fieldValue);
+                    fillField(fieldName, patientData);
+                }
             }
         }
     }
 
-    private void fillFormWithPatientData() throws InterruptedException {
-
-
-
-        saluationInputJquery(patientData.getString("salutation"));
-        fillInputField("firstName", patientData.getString("firstName"),   mandatoryFieldsMap.containsKey("firstName") ? mandatoryFieldsMap.get("firstName") :false);
-        fillInputField("lastName", patientData.getString("lastName"), mandatoryFieldsMap.containsKey("lastName")  );
-        selectField("title", patientData.getString("title"));
-        selectField("bloodGroup", patientData.getString("bloodGroup"));
-
-        if (patientData.has("guardianName")) {
-            fillInputField("guardianName", patientData.getString("guardianName"), true);
+    private void fillField(String fieldName, JSONObject patientData) throws InterruptedException {
+        switch (fieldName) {
+            case "firstName":
+            case "lastName":
+            case "phoneNumber":
+            case "address":
+            case "email":
+            case "diagnosis":
+            case "postalCode":
+            case "parentName":
+            case "parentNumber":
+            case "parentEmail":
+            case "aadharNumber":
+            case "knownAllergies":
+            case "previousMedicalIssue":
+            case "insuranceCode":
+            case "notes":
+            case "guardianName":
+                fillInputField(fieldName, patientData.getString(fieldName), fieldMantatoryValidator(fieldName));
+                break;
+            case "title":
+            case "bloodGroup":
+            case "incharge1Relationship":
+                selectField(fieldName, patientData.getString(fieldName));
+                break;
+            case "citizian":
+                selectRadioButtonCitizen(fieldName, patientData.getString(fieldName));
+                break;
+            case "gender":
+            case "maritalStatus":
+            case "insurance":
+                selectRadioButton(fieldName, patientData.getString(fieldName));
+                break;
+            case "dob":
+                datatePickerDob(patientData.getString(fieldName), "patRegDob12");
+                break;
+            case "state":
+                selectSelectDropdown(fieldName, patientData.getString("state"));
+                break;
+            case "city":
+            case "caseType":
+                matSelectDropDown(fieldName, patientData.getString(fieldName));
+                break;
+            case "expiryDateInsurance":
+                fillExpiryDate(patientData.getString(fieldName));
+                break;
+            default:
+                System.out.println("Unknown field: " + fieldName);
+                break;
         }
+    }
 
-        handleDatePickerInLoop(patientData.getString("dob"), "patRegDob12");
+    private void selectRadioButtonCitizen(String fieldName, String value) {
 
-        if (getAgeFromAgeField() >= 18) {
-            fillInputField("phoneNumber", patientData.getString("phoneNumber"), true);
-        } else {
-            fillInputField("parentName", patientData.getString("parentName"), true);
-            fillInputField("parentNumber", patientData.getString("parentNumber"), true);
+        try {
+
+            WebElement radioButton = wait.until(ExpectedConditions.presenceOfElementLocated(
+                    By.xpath("//input[@formcontrolname='nri'][@value='" + value + "'] | //label[span[contains(text(), '" + value + "')]]/input[@formcontrolname='nri'] ")
+            ));
+            ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView({block: 'center'});", radioButton);
+            ((JavascriptExecutor) driver).executeScript("arguments[0].click();", radioButton);
+            System.out.println("Selected radio button: " + value);
+        } catch (TimeoutException e) {
+            System.out.println("Radio button with value '" + value + "' not found!");
         }
+    }
 
-        selectRadioButton("gender", patientData.getString("gender"));
-        selectRadioButton("maritalStatus", patientData.getString("maritalStatus").toLowerCase());
-        fillInputField("address", patientData.getString("address"), true);
-        fillInputField("email", patientData.getString("email"), true);
-        selectSelectDropdown("cityChange", patientData.getString("state"));
-        matSelectDropDown("city", patientData.getString("city"));
-        matSelectDropDown("caseType", patientData.getString("caseType"));
-        fillInputField("diagnosis", patientData.getString("diagnosis"), true);
-        fillInputField("postalCode", patientData.getString("postalCode"), true);
-        fillInputField("incharge1Name", patientData.getString("inchargeName"), true);
-        selectField("incharge1Relationship", patientData.getString("inchargeRelationship"));
-        fillInputField("incharge1Phone", patientData.getString("inchargePhone"), true);
-        fillInputField("incharge1Email", patientData.getString("inchargeEmail"), true);
-        selectRadioButton("nri", patientData.getString("citizian"));
-
-        if (patientData.getString("citizian").equals("Indian")) {
-            fillInputField("aadharNumber", patientData.getString("aadharNumber"), true);
-        }
-
-        fillInputField("knownAllergies", patientData.getString("knownAllergies"), true);
-        fillInputField("previousMedicalIssue", patientData.getString("previousMedicalIssue"), true);
-        selectRadioButton("insurance", patientData.getString("insuranceSelect"));
-
-        if (patientData.getString("insuranceSelect").equals("Yes")) {
-            fillInputField("insuranceCode", patientData.getString("insuranceCode"), true);
-            selectInsuranceId();
-            fillExpiryDate(patientData.getString("expiryDateInsurance"));
-        }
-
-        fillInputField("notes", patientData.getString("notes"), true);
+    private boolean fieldMantatoryValidator(String keyName) {
+        return mandatoryFieldsMap.containsKey(keyName) ? mandatoryFieldsMap.get(keyName) : false;
     }
 
     private void findMantatoryFields() {
-        // Find all labels containing an asterisk
-
         List<WebElement> asteriskElements = driver.findElements(By.xpath(
                 "//span[contains(@style,'color: red') and text()='*']"
         ));
@@ -114,7 +378,6 @@ public class PatientRegisterationForm extends LoginAndLocationTest {
             WebElement field = null;
 
             try {
-                // Look for input, select, or radio fields near the asterisk
                 field = asterisk.findElement(By.xpath(
                         "./ancestor::label/following-sibling::input | " +
                                 "./ancestor::label/following-sibling::select | " +
@@ -127,46 +390,21 @@ public class PatientRegisterationForm extends LoginAndLocationTest {
             }
 
             if (field != null) {
-//                String tagName = field.getTagName();
-//                String fieldType = field.getAttribute("type");
-
-                // Highlight fields with different colors based on type
-//                if ("select".equals(tagName)) {
-//                    js.executeScript("arguments[0].style.border='3px solid blue'", field); // Dropdown
-//                    System.out.println("Highlighted SELECT field.");
-//                } else if ("radio".equals(fieldType)) {
-//                    js.executeScript("arguments[0].style.outline='3px solid green'", field); // Radio button
-//                    System.out.println("Highlighted RADIO button.");
-//                } else {
-//                    js.executeScript("arguments[0].style.border='3px solid red'", field); // Text Input
-//                    System.out.println("Highlighted INPUT field.");
-//                }
-
-                // Print field details
-                String title = field.getAttribute("title");
                 String formControlName = field.getAttribute("formcontrolname");
-                String placeholder = field.getAttribute("placeholder");
 
                 if (formControlName != null && !formControlName.isEmpty()) {
                     mandatoryFieldsMap.put(formControlName, true);
                 }
-
-
             }
         }
     }
 
-    // Helper methods (unchanged from original code)
-    private void fillInputField(String formControlName, String value, boolean mantatory) {
-
-        if (mantatory) {
-            WebElement inputField = wait.until(ExpectedConditions.elementToBeClickable(
-                    By.xpath("//input[@formcontrolname='" + formControlName + "'] | //app-input-text[@formcontrolname='" + formControlName + "']//input | //textarea[@formcontrolname='" + formControlName + "']")
-            ));
-            inputField.clear();
-            inputField.sendKeys(value);
-            System.out.println("Filled " + formControlName + " with value: " + value);
-        }
+    private void fillInputField(String formControlName, String value, boolean mandatory) {
+        WebElement inputField = wait.until(ExpectedConditions.elementToBeClickable(
+                By.xpath("//input[@formcontrolname='" + formControlName + "'] | //app-input-text[@formcontrolname='" + formControlName + "']//input | //textarea[@formcontrolname='" + formControlName + "']")
+        ));
+        inputField.sendKeys(value);
+        System.out.println("Filled " + formControlName + " with value: " + value);
     }
 
     private void selectField(String title, String value) {
@@ -190,6 +428,10 @@ public class PatientRegisterationForm extends LoginAndLocationTest {
     }
 
     private void selectSelectDropdown(String id, String value) {
+        System.out.println("" + id + "" + value);
+        if (id.equals("state")) {
+            id = "cityChange";
+        }
         WebElement dropDownField = driver.findElement(By.id(id));
         JavascriptExecutor js = (JavascriptExecutor) driver;
         js.executeScript("arguments[0].value='" + value + "'; arguments[0].dispatchEvent(new Event('change'));", dropDownField);
@@ -197,18 +439,68 @@ public class PatientRegisterationForm extends LoginAndLocationTest {
     }
 
     private void matSelectDropDown(String formControlName, String optionText) {
-        WebElement matSelect = wait.until(ExpectedConditions.elementToBeClickable(
-                By.xpath("//mat-select[@formcontrolname='" + formControlName + "']")
-        ));
-        matSelect.click();
-        WebElement option = wait.until(ExpectedConditions.elementToBeClickable(
-                By.xpath("//mat-option//span[contains(text(), '" + optionText + "')]")
-        ));
-        option.click();
-        System.out.println("Selected option: " + optionText);
+
+//        JavascriptExecutor js = (JavascriptExecutor) driver;
+//        WebElement matSelect = wait.until(ExpectedConditions.elementToBeClickable(
+//                By.xpath("//mat-select[@formcontrolname='" + formControlName + "']")
+//        ));
+//        js.executeScript("arguments[0].scrollIntoView(true);", matSelect);
+//        try {
+//            Thread.sleep(500); // Allow time for scrolling (try to avoid, use waits if possible)
+//        } catch (InterruptedException e) {
+//            throw new RuntimeException(e);
+//        }
+//        matSelect.click();
+//
+//
+//        WebElement option = wait.until(ExpectedConditions.elementToBeClickable(
+//                By.xpath("//mat-option//span[contains(text(), '" + optionText + "')]")
+//        ));
+//        option.click();
+//        System.out.println("Selected option: " + optionText);
+
+
+        try {
+            System.out.println("Selecting from mat-select: " + formControlName + " -> " + optionText);
+
+            // Locate mat-select element and wait for it to be clickable
+            WebElement matSelect = wait.until(ExpectedConditions.elementToBeClickable(
+                    By.xpath("//mat-select[@formcontrolname='" + formControlName + "']")
+            ));
+
+            // Scroll into view to avoid interception issues
+            ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);", matSelect);
+            Thread.sleep(500); // Allow UI to adjust (can be replaced with better wait)
+
+            // Click using JavaScript to avoid interception issues
+            ((JavascriptExecutor) driver).executeScript("arguments[0].click();", matSelect);
+
+            // Wait for options to appear
+            WebElement option = wait.until(ExpectedConditions.elementToBeClickable(
+                    By.xpath("//mat-option//span[contains(text(), '" + optionText + "')]")
+            ));
+
+            // Scroll into view and click the option
+            ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);", option);
+            Thread.sleep(300); // Allow UI to adjust
+            option.click();
+
+            System.out.println("Selected option: " + optionText);
+        } catch (ElementClickInterceptedException e) {
+            System.out.println("ElementClickInterceptedException: Trying alternative click...");
+            try {
+                WebElement matSelect = driver.findElement(By.xpath("//mat-select[@formcontrolname='" + formControlName + "']"));
+                Actions actions = new Actions(driver);
+                actions.moveToElement(matSelect).click().perform(); // Try clicking via Actions
+            } catch (Exception ex) {
+                System.out.println("Alternative click also failed: " + ex.getMessage());
+            }
+        } catch (Exception e) {
+            System.out.println("Error selecting mat-select dropdown: " + e.getMessage());
+        }
     }
 
-    public void handleDatePickerInLoop(String date, String id) {
+    public void datatePickerDob(String date, String id) {
         WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
         Actions actions = new Actions(driver);
 
@@ -249,70 +541,10 @@ public class PatientRegisterationForm extends LoginAndLocationTest {
         actions.moveByOffset(0, 0).click().perform();
     }
 
-    public void handleDatePicker(String date, String id) {
-        resetDatePicker();
-        Actions actions = new Actions(driver);
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
-
-        // Parse the date in DD-MM-YYYY format.
-        String[] dateParts = date.split("-");
-        String dayText = dateParts[0];    // Day
-        String monthText = dateParts[1];  // Month (MM)
-        String yearText = dateParts[2];   // Year (YYYY)
-
-        try {
-            // Step 1: Click the date picker field to open the calendar
-            WebElement datePickerContainer = wait.until(ExpectedConditions.elementToBeClickable(By.id(id)));
-            System.out.println("Clicked the date picker field: " + id);
-
-            // Step 2: Find and click the <i> element with class 'fa fa-calendar'
-            WebElement calendarIcon = datePickerContainer.findElement(By.xpath(".//i[contains(@class, 'fa-calendar')]"));
-            calendarIcon.click();
-            System.out.println("Clicked the calendar icon (fa fa-calendar)");
-
-
-            // Step 3: Find the <span> inside the datePickerContainer
-            WebElement spanElement = datePickerContainer.findElement(By.xpath(".//span"));
-            System.out.println("Text inside <span>: " + spanElement.getText());
-
-            // Step 4: Select the Year
-            WebElement yearDropdown = wait.until(ExpectedConditions.visibilityOfElementLocated(
-                    By.cssSelector("select.yearselect")));
-            new Select(yearDropdown).selectByValue(yearText);
-
-            // Step 5: Select the Month
-            WebElement monthDropdown = wait.until(ExpectedConditions.visibilityOfElementLocated(
-                    By.cssSelector("select.monthselect")));
-            String monthName = convertMMToMonth(monthText);
-            WebElement monthOption = monthDropdown.findElement(By.xpath(".//option[text()='" + monthName + "']"));
-            monthOption.click();
-
-            // Step 6: Select the Day
-            WebElement dayElement = wait.until(ExpectedConditions.elementToBeClickable(
-                    By.xpath("//td[text()='" + Integer.parseInt(dayText) + "']")));
-            dayElement.click();
-
-            // Step 7: Close the date picker
-            actions.sendKeys(Keys.ESCAPE).perform();
-            actions.moveByOffset(0, 0).click().perform();
-
-            System.out.println("Selected date: " + date + " for date picker ID: " + id);
-
-        } catch (StaleElementReferenceException e) {
-            System.out.println("Stale element encountered. Retrying...");
-            handleDatePicker(date, id); // Retry the operation
-        } catch (Exception e) {
-            System.out.println("An error occurred: " + e.getMessage());
-            e.printStackTrace();
-        }
-    }
-
-
     public String convertMMToMonth(String monthNumber) {
         int monthInt = Integer.parseInt(monthNumber);
         return Month.of(monthInt).getDisplayName(TextStyle.SHORT, Locale.ENGLISH);
     }
-
 
     private int getAgeFromAgeField() {
         WebElement ageInput = driver.findElement(By.cssSelector("input[formcontrolname='age']"));
@@ -336,39 +568,31 @@ public class PatientRegisterationForm extends LoginAndLocationTest {
     }
 
     private void fillExpiryDate(String date) {
-
         String[] dateFormat = date.split("-");
         String dateText = dateFormat[0]; // Day
         String monthText = dateFormat[1]; // Month (MM)
         String yearText = dateFormat[2]; // Year (YYYY)
 
-
         WebElement expiryDateField = driver.findElement(By.id("patient-registration2"));
         expiryDateField.click();
 
-        // Wait for the date picker to be visible
         WebElement dateRangePicker = wait.until(ExpectedConditions.visibilityOfElementLocated(
                 By.cssSelector("div.daterangepicker.ltr.auto-apply.single.opensright.show-calendar")
         ));
 
-        // Use JavaScript to highlight the container (optional for debugging)
         JavascriptExecutor js = (JavascriptExecutor) driver;
         js.executeScript("arguments[0].style.border='2px solid purple'", dateRangePicker);
 
-        // Locate the left calendar which is displayed
         WebElement leftCalendar = dateRangePicker.findElement(By.cssSelector("div.drp-calendar.left.single"));
         js.executeScript("arguments[0].style.border='2px solid red'", leftCalendar);
 
-        // Locate the month select dropdown inside the calendar header
         WebElement monthSelectElement = leftCalendar.findElement(By.cssSelector("select.monthselect"));
 
-        // Click on the dropdown using JavaScript if normal click fails
         try {
             monthSelectElement.click();
             System.out.println("Clicked month dropdown using normal click.");
             Select monthSelect = new Select(monthSelectElement);
             monthSelect.selectByVisibleText(convertMMToMonth(monthText));
-
         } catch (Exception e) {
             js.executeScript("arguments[0].click();", monthSelectElement);
             System.out.println("Clicked month dropdown using JavaScript.");
@@ -378,11 +602,7 @@ public class PatientRegisterationForm extends LoginAndLocationTest {
 
         System.out.println("click month");
         threadTimer(2500);
-        // Change to your desired month
-        // Locate the year select dropdown inside the calendar header
 
-
-// **Re-locate the year dropdown after UI refresh**
         WebElement yearSelectElement = leftCalendar.findElement(By.cssSelector("select.yearselect"));
         js.executeScript("arguments[0].style.display='block';", yearSelectElement);
 
@@ -393,12 +613,9 @@ public class PatientRegisterationForm extends LoginAndLocationTest {
             js.executeScript("arguments[0].click();", yearSelectElement);
             System.out.println("Clicked year dropdown using JavaScript.");
         }
-        System.out.println("part 2");
 
-// Wait for year options to load
         wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("select.yearselect option")));
 
-// **Re-locate the year dropdown again**
         yearSelectElement = leftCalendar.findElement(By.cssSelector("select.yearselect"));
         Select yearSelect = new Select(yearSelectElement);
 
@@ -410,19 +627,14 @@ public class PatientRegisterationForm extends LoginAndLocationTest {
             System.out.println("Year '2026' selected using JavaScript.");
         }
 
+        String desiredDate = dateText;
 
-        // Define the desired date to select
-        String desiredDate = dateText; // Change this to the date you want
-
-// Wait for the date picker to be visible
         WebElement datePicker = wait.until(ExpectedConditions.visibilityOfElementLocated(
                 By.cssSelector("div.daterangepicker.ltr.auto-apply.single.opensright.show-calendar")
         ));
 
-// Locate all available dates in the calendar
         List<WebElement> dateElements = datePicker.findElements(By.cssSelector("td.available"));
 
-// Loop through the dates and click the desired one
         boolean dateFound = false;
         for (WebElement dateElement : dateElements) {
             if (dateElement.getText().trim().equals(desiredDate)) {
@@ -433,17 +645,15 @@ public class PatientRegisterationForm extends LoginAndLocationTest {
             }
         }
 
-// If the date was not found, print an error
         if (!dateFound) {
             System.out.println("Date not found: " + desiredDate);
         }
-
     }
 
     private void resetDatePicker() {
         Actions actions = new Actions(driver);
-        actions.sendKeys(Keys.ESCAPE).perform(); // Close the date picker if open.
-        actions.moveByOffset(0, 0).click().perform(); // Click outside to ensure it's closed.
+        actions.sendKeys(Keys.ESCAPE).perform();
+        actions.moveByOffset(0, 0).click().perform();
     }
 
     private void saluationInputJquery(String salutation) {
@@ -471,9 +681,57 @@ public class PatientRegisterationForm extends LoginAndLocationTest {
         System.out.println("Highlighted the error message element.");
 
         threadTimer(2000);
-
-
     }
 
+    private String handleRuntimeError(String type, WebDriverWait wait) {
+        return wait.until(driver -> {
+            // Error messages (only these should cause test failure)
+            List<String> errorMessages = Arrays.asList(
+                    "Error 403",
+                    "Error 0",
+                    "Error 2",
+                    "Something Went Wrong",
+                    ""
+            );
 
+            // XPath locators for detecting messages
+            List<By> messageLocators = Arrays.asList(
+                    By.xpath("//div[contains(@class, 'container-2')]/p"),
+                    By.xpath("//p"),
+                    By.xpath("//div[contains(@class, 'toast-right-top')]//p")
+            );
+
+            // Iterate through locators to find a message
+            for (By locator : messageLocators) {
+                List<WebElement> elements = driver.findElements(locator);
+                if (!elements.isEmpty() && elements.get(0).isDisplayed()) {
+                    String messageText = elements.get(0).getText().trim();
+                    System.out.println("🔍 Message Found: " + messageText);
+
+                    // Fail only if message is in errorMessages list
+                    if (errorMessages.contains(messageText)) {
+                        System.out.println("⚠️ Error Message Detected: " + messageText);
+                        Assert.fail("Test failed due to error message: " + messageText);
+                    }
+
+                    // ✅ Return the found message text
+                    return messageText;
+                }
+            }
+
+            return null;
+        });
+    }
+
+    public static String generateRandomFirstName(int length) {
+        Random random = new Random();
+        String alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+        StringBuilder firstName = new StringBuilder();
+
+        for (int i = 0; i < length; i++) {
+            firstName.append(alphabet.charAt(random.nextInt(alphabet.length())));
+        }
+
+        return firstName.toString();
+    }
 }
