@@ -97,6 +97,15 @@ public class PatientRegisterationForm extends LoginAndLocationTest {
                 null, null, null, null, "Indian", "267323633773", "application", "good",
                 "No", null, null, "testing purpose"
         ), false}
+
+                // Scenario 10: email and phone length error validator throw patient registeration
+                , {createPatientData(
+                "Mr.", "Sharma", "M", "D/O", "A +ve", "Intulogic", "05-05-1994", "9791310",
+                null, null, "Male", "Married", "77 west street srinivasonnalur kumbakonam",
+                "sharmamurugaiyan", "Tamil Nadu", "Chennai", "F CVT", "fill any diagnonsis", "612204",
+                null, null, null, null, "Indian", "267323633773", "application", "good",
+                "No", null, null, "testing purpose"
+        ), false}
         };
     }
 
@@ -188,6 +197,7 @@ public class PatientRegisterationForm extends LoginAndLocationTest {
 
                         System.out.println("Successfully register" + messageText);
                     } else {
+
                         // Handle validation errors
                         System.out.println("Verifying form submission failure...");
                         errorMessageHandle(driver, wait);
@@ -200,8 +210,10 @@ public class PatientRegisterationForm extends LoginAndLocationTest {
             if (scanerio == 7 || scanerio == 8) {
                 JavascriptExecutor js = (JavascriptExecutor) driver;
                 js.executeScript("location.reload()");
-            } else if (scanerio == 6) {
+            } else if (scanerio == 6 || scanerio ==10) {
                 findMantatoryFields();
+
+                threadTimer(2000);
 
                 WebElement reset = wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//button[contains(text(),'Reset')]")));
                 System.out.println("Reset clicked");
@@ -212,6 +224,7 @@ public class PatientRegisterationForm extends LoginAndLocationTest {
                 reset.click();
             }
             scanerio++;
+            threadTimer(3000);
         }
     }
 
@@ -238,8 +251,9 @@ public class PatientRegisterationForm extends LoginAndLocationTest {
         }else if(scanerio==9)
         {
             return "Scenario 9: 500 error throw patient registeration ";
-        }
-        else {
+        } else if (scanerio==10) {
+            return "Scenario 10: email and number validator ";
+        } else {
             return "Unknown Scenario";
         }
     }
@@ -326,6 +340,7 @@ public class PatientRegisterationForm extends LoginAndLocationTest {
             case "maritalStatus":
             case "insurance":
                 selectRadioButton(fieldName, patientData.getString(fieldName));
+
                 break;
             case "dob":
                 datatePickerDob(patientData.getString(fieldName), "patRegDob12");
@@ -390,12 +405,34 @@ public class PatientRegisterationForm extends LoginAndLocationTest {
             }
 
             if (field != null) {
-                String formControlName = field.getAttribute("formcontrolname");
+                String tagName = field.getTagName();
+                String fieldType = field.getAttribute("type");
 
-                if (formControlName != null && !formControlName.isEmpty()) {
+                // Highlight fields with different colors based on type
+                if ("select".equals(tagName)) {
+                    js.executeScript("arguments[0].style.border='3px solid blue'", field); // Dropdown
+                    System.out.println("Highlighted SELECT field.");
+                } else if ("radio".equals(fieldType)) {
+                    js.executeScript("arguments[0].style.outline='3px solid green'", field); // Radio button
+                    System.out.println("Highlighted RADIO button.");
+                } else {
+                    js.executeScript("arguments[0].style.border='3px solid red'", field); // Text Input
+                    System.out.println("Highlighted INPUT field.");
+                }
+
+                // Print field details
+                String title = field.getAttribute("title");
+                String formControlName = field.getAttribute("formcontrolname");
+                String placeholder = field.getAttribute("placeholder");
+
+                System.out.println("Mandatory Field -> Title: " + title +
+                        ", FormControlName: " + formControlName +
+                        ", Placeholder: " + placeholder);
+               if (formControlName != null && !formControlName.isEmpty()) {
                     mandatoryFieldsMap.put(formControlName, true);
                 }
             }
+
         }
     }
 
@@ -422,6 +459,10 @@ public class PatientRegisterationForm extends LoginAndLocationTest {
             ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView({block: 'center'});", radioButton);
             ((JavascriptExecutor) driver).executeScript("arguments[0].click();", radioButton);
             System.out.println("Selected radio button: " + value);
+            if(value.equals("Yes"))
+            {
+                selectInsuranceId();
+            }
         } catch (TimeoutException e) {
             System.out.println("Radio button with value '" + value + "' not found!");
         }
@@ -673,6 +714,7 @@ public class PatientRegisterationForm extends LoginAndLocationTest {
 
         String errorText = errorMessage.getText().trim();
         System.out.println("Error!:" + errorText);
+        threadTimer(3000);
     }
 
     private void highlightElement(WebDriver driver, WebElement element) {

@@ -59,13 +59,12 @@ public class BaseTest {
             throw new RuntimeException(e);
         }
          userDetails = Arrays.asList(
-//                new UserDetails("incorrectUsername", "correctPassword"), // Username Incorrect
-//                new UserDetails("FAC-973-support", "incorrectPassword"), // Username and Password Incorrect
-//                new UserDetails("Sharma", "correctPassword") ,
+                new UserDetails("incorrectUsername", "correctPassword"), // Username Incorrect
+                new UserDetails("FAC-973-support", "incorrectPassword"), // Username and Password Incorrect
+                new UserDetails("Sharma", "correctPassword") ,
                 new UserDetails("scott", "scott")
                 // Account Locked (after multiple attempts)
         );
-
 
         ageLabel.add("Age In Years And Months");
         ageLabel.add("Age In Years");
