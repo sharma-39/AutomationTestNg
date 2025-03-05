@@ -158,14 +158,6 @@ public class PatientRegisterationForm extends LoginAndLocationTest {
         return new JSONObject(orderedMap);
     }
 
-    @BeforeMethod
-    public void changeTestName(Method method, Object[] testData, ITestContext context, ITestResult result) {
-        if (testData.length > 0 && testData[0] instanceof JSONObject) {
-            // Change the test name in reports
-            result.setAttribute("name", "Patient Registration - "+scenario);
-        }
-    }
-
     @Test(priority = 3, dependsOnMethods = {"testLogin"})
     public void runOpenMenu() {
         if (isLoginSuccessful) {
