@@ -1,5 +1,6 @@
 package org.example;
 
+import com.sun.source.tree.AssertTree;
 import org.json.JSONObject;
 import org.openqa.selenium.*;
 import org.openqa.selenium.interactions.Actions;
@@ -7,10 +8,14 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.testng.Assert;
+import org.testng.ITestContext;
+import org.testng.ITestResult;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.time.Duration;
 import java.time.Month;
 import java.time.format.TextStyle;
@@ -59,7 +64,7 @@ public class PatientRegisterationForm extends LoginAndLocationTest {
                 ), true},
                 // Scenario 5: Fill Only Mandatory Fields
                 {createPatientData(
-                        null, "Test Name"+generateRandomFirstName(5), null, null, null, null, "05-05-1994", "9791310502",
+                        null, "Test Name"+generateRandomFirstName(5), null, "Cancel", null, null, "05-05-1994", "9791310502",
                         null, null, "Male", null, null,
                         null, "Tamil Nadu", "Chennai", null, null, null,
                         null, null, null, null, null, null, null, null,
@@ -153,6 +158,14 @@ public class PatientRegisterationForm extends LoginAndLocationTest {
         return new JSONObject(orderedMap);
     }
 
+    @BeforeMethod
+    public void changeTestName(Method method, Object[] testData, ITestContext context, ITestResult result) {
+        if (testData.length > 0 && testData[0] instanceof JSONObject) {
+            // Change the test name in reports
+            result.setAttribute("name", "Patient Registration - "+scenario);
+        }
+    }
+
     @Test(priority = 3, dependsOnMethods = {"testLogin"})
     public void runOpenMenu() {
         if (isLoginSuccessful) {
@@ -160,8 +173,9 @@ public class PatientRegisterationForm extends LoginAndLocationTest {
         }
     }
 
-    @Test(priority = 4, dataProvider = "patientDataProvider")
-    public void processtempPatientData(JSONObject patientData, boolean expectedResult) throws IOException, InterruptedException {
+
+    @Test(priority = 4, dataProvider = "patientDataProvider" , description = "Patient Registration Test")
+    public void patientRegisteration(JSONObject patientData, boolean expectedResult) throws IOException, InterruptedException {
         if (isLoginSuccessful) {
             // Print the scenario description, data, and expected result
             System.out.println("\n=========================================");
@@ -198,7 +212,6 @@ public class PatientRegisterationForm extends LoginAndLocationTest {
                     } else {
 
                         // Handle validation errors
-                        System.out.println("Verifying form submission failure...");
                         errorMessageHandle(driver, wait);
                     }
                 }
@@ -217,6 +230,8 @@ public class PatientRegisterationForm extends LoginAndLocationTest {
                 WebElement reset = wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//button[contains(text(),'Reset')]")));
                 System.out.println("Reset clicked");
                 reset.click();
+                Assert.fail(""+getScenarioDescription(patientData));
+
             } else {
                 WebElement reset = wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//button[contains(text(),'Reset')]")));
                 System.out.println("Reset clicked");
