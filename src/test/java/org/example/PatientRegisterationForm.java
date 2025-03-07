@@ -72,7 +72,8 @@ public class PatientRegisterationForm extends LoginAndLocationTest {
                 ), true},
                 // Scenario 6: Fill Without Mandatory Fields (Error Highlighting)
                 {createPatientData(
-                        "Mr.", null, "M", "Cancel", null, null, null, null,
+                        "Mr.", null,
+                        "M", "Cancel", null, null, null, null,
                         null, null, null, null, null, "emailid@gmail.com", null, null,
                         null, null, null,
                         null, null, null, null, null, null, null, null, null, null, null, "Testing errors"
@@ -644,7 +645,7 @@ public class PatientRegisterationForm extends LoginAndLocationTest {
             System.out.println("Year '" + yearText + "' selected.");
         } catch (Exception e) {
             js.executeScript("arguments[0].value='2026'; arguments[0].dispatchEvent(new Event('change'));", yearSelectElement);
-            System.out.println("Year '2026' selected using JavaScript.");
+            System.out.println("Year '"+yearText+"' selected using JavaScript.");
         }
 
         String desiredDate = dateText;
