@@ -1,77 +1,237 @@
 package org.example;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.openqa.selenium.*;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import java.io.File;
+import java.io.IOException;
 import java.time.Duration;
 import java.time.Month;
 import java.time.format.TextStyle;
 import java.util.List;
 import java.util.Locale;
+import java.util.Random;
 
 public class PharmacyFlow extends LoginAndLocationTest {
 
-    @Test(priority = 3)
-    public void testPharmacyFlow() {
-        menuPanelClick("Stock", true, "Purchase");
-        waitForSeconds(3);
-        verifyPanelName("Purchase Management");
-        addStock();
+    @DataProvider(name = "stockData")
+    public Object[][] getStockData() throws IOException {
+        ObjectMapper objectMapper = new ObjectMapper();
+        JsonNode jsonNode = objectMapper.readTree(new File("src/test/resources/stockData.json"));
+        return new Object[][]{{jsonNode}};
     }
 
-    private void addStock() {
+    @Test(priority = 3, dataProvider = "stockData")
+    public void testPharmacyFlow(JsonNode stockData) {
+
+        boolean afterApprovelEdit=false;
+       // menuPanelClick("Stock", true, "Purchase");
+        waitForSeconds(3);
+     //   verifyPanelName("Purchase Management");
+     //   String invoiceNumber= addStock(stockData);
+        String invoiceNumber="123QDPj";
+       // editStock(invoiceNumber,stockData);
+        menuPanelClick("Approval",true,"Purchase Edit Approval");
+        verifyPanelName("Purchase Edit Approval");
+        if(afterApprovelEdit)
+        {
+            editStock(invoiceNumber,stockData);
+        }
+        System.out.println("approvel purchase");
+        approvelPurchase(invoiceNumber);
+    }
+
+    private void approvelPurchase(String invoiceNumber) {
+
+        List<WebElement> rows = driver.findElements(By.xpath("//table//tr"));
+        for (int i = 0; i < rows.size(); i++) {
+            if (rows.get(i).getText().contains(invoiceNumber)) {
+                System.out.println("Row Found at Index: " + (i+ 1));
+
+                // Highlight the row
+                JavascriptExecutor js = (JavascriptExecutor) driver;
+                js.executeScript("arguments[0].style.backgroundColor = 'yellow'", rows.get(i));
+
+                ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);", rows.get(i));
+
+                System.out.println("Row Highlighted!");
+                WebElement edit = rows.get(i).findElement(By.xpath(".//button[@title='Approve']"));; // Scroll to the button
+                edit.click(); // Click the button
+                break;
+            }
+        }
+    }
+
+    private String addStock(JsonNode stockData) {
         clickElement(By.xpath("//button[contains(text(),'Add Stock')]"));
 
-        selectDropdownByVisibleText(By.xpath("//select[@formcontrolname='supplierId']"), "ABC Pharma Pvt. Ltd.", "1329");
+        JsonNode supplier = stockData.get("stock").get("supplier");
+        selectDropdownByVisibleText(By.xpath("//select[@formcontrolname='supplierId']"),
+                supplier.get("name").asText(),
+                supplier.get("id").asText());
 
-        enterText(By.cssSelector("input[formcontrolname='invoiceNumber']"), "29379273");
+        String invoiceNumber =stockData.get("stock").get("invoiceNumber").asText()+""+ invoiceNumberGenerate(4);
+        enterText(By.cssSelector("input[formcontrolname='invoiceNumber']"),invoiceNumber,
+                true);
 
-        invoiceDate("05-03-2025", "purDate");
-        grnDate("06-03-2025", "grnDate");
+        invoiceDate(stockData.get("stock").get("invoiceDate").asText(), "purDate");
+        grnDate(stockData.get("stock").get("grnDate").asText(), "grnDate");
 
-        enterText(By.xpath("//input[@title='Cash Discount (%)']"), "20");
-        enterText(By.xpath("//input[@title='TCS (%)']"), "5");
+        enterText(By.xpath("//input[@title='Cash Discount (%)']"),
+                stockData.get("stock").get("cashDiscount").asText(), true);
+        enterText(By.xpath("//input[@title='TCS (%)']"),
+                stockData.get("stock").get("tcs").asText(), true);
+
 
 
         clickElement(By.xpath("//div[contains(@class, 'addIcon-button')]"));
-        addStockDetails();
+        for(int i=0;i<stockData.get("stock").get("items").size();i++)
+        {
+            addStockDetails(stockData.get("stock").get("items").get(i));
+            clickElement(By.xpath("//button[contains(text(),'Add New')]"));
+
+        }
+
+        threadTimer(3000);
+
+        clickElement(By.xpath("//button[contains(text(),'Close') and not(contains(text(),'Save & Close'))]"));
+        threadTimer(3000);
+
+
+        clickElement(By.xpath("//button[contains(text(),'Save & Close')]"));
+
+
+        return invoiceNumber;
 
 
     }
+    private void editStock(String invoiceNumber, JsonNode itemData)
+    {
 
-    private void addStockDetails() {
+
+        List<WebElement> rows = driver.findElements(By.xpath("//table//tr"));
+        for (int i = 0; i < rows.size(); i++) {
+            if (rows.get(i).getText().contains(invoiceNumber)) {
+                System.out.println("Row Found at Index: " + (i + 1));
+
+                // Highlight the row
+                JavascriptExecutor js = (JavascriptExecutor) driver;
+                js.executeScript("arguments[0].style.backgroundColor = 'yellow'", rows.get(i));
+
+                ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);", rows.get(i));
+
+                System.out.println("Row Highlighted!");
+                WebElement edit = rows.get(i).findElement(By.xpath(".//button[@title='Edit']"));; // Scroll to the button
+                edit.click(); // Click the button
+                break;
+            }
+        }
+        JsonNode itemsArray = itemData.path("stock").path("items");
+        for (int i = 0; i < itemsArray.size(); i++) {
+           if(itemsArray.get(i).get("edit").asBoolean()){
+               threadTimer(1000);
+
+               String targetItem = itemsArray.get(i).get("description").asText();
+               List<WebElement> rowsItems = driver.findElements(By.xpath("//table//tr"));
+               for (int j = 0; j < rowsItems.size(); j++) {
+                   if (rowsItems.get(j).getText().contains(targetItem)) {
+                       System.out.println("Row Found at Index: " + (j + 1));
+
+                       // Highlight the row
+                       JavascriptExecutor js = (JavascriptExecutor) driver;
+                       js.executeScript("arguments[0].style.backgroundColor = 'yellow'", rowsItems.get(j));
+                       ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);", rowsItems.get(j));
+                       System.out.println("Row Highlighted!");
+                       WebElement viewButton = rowsItems.get(j).findElement(By.xpath(".//button[@title='Edit']"));; // Scroll to the button
+                       viewButton.click(); // Click the button
+
+                       threadTimer(2000);
+                       enterText(By.xpath("//input[@title='Batch Number']"), itemsArray.get(i).get("batchNumber").asText(), true);
+                       selectDropdownByValue(By.xpath("//select[@title='Month']"), itemsArray.get(i).get("expiryMonth").asText(), true);
+                       selectDropdownByValue(By.xpath("//select[@title='Year']"), itemsArray.get(i).get("expiryYear").asText(), true);
+                       selectDropdownByIndex(By.xpath("//select[@formcontrolname='purchaseUomId']"),
+                               itemsArray.get(i).get("purchaseUomIndex").asInt(), true);
+
+                       enterText(By.xpath("//input[@type='number' and @title='Qty Per Package']"), itemsArray.get(i).get("qtyPerPackage").asText(), true);
+                       enterText(By.xpath("//input[@type='number' and @title='Purchase Quantity']"), itemsArray.get(i).get("purchaseQuantity").asText(), true);
+                       enterText(By.xpath("//input[@type='number' and @title='MRP']"), itemsArray.get(i).get("mrp").asText(), true);
+                       enterText(By.xpath("//input[@type='number' and @title='Purchase Rate']"), itemsArray.get(i).get("purchaseRate").asText(), true);
+                       enterText(By.xpath("//input[@type='number' and @title='Purchase Discount (%)']"), itemsArray.get(i).get("purchaseDiscount").asText(), true);
+                       enterText(By.xpath("//input[@type='number' and @title='GST']"),itemsArray.get(i).get("gst").asText(), true);
+
+                       clickElement(By.xpath("(//button[contains(text(),'Save & Close')])[1]"));
+
+                   }
+               }
+
+               threadTimer(500);
+               clickElement(By.xpath("(//button[contains(text(),'Save & Close')])"));
+
+           };
+        }
+    }
+
+    private void editableFieldsStockDetails(JsonNode itemData) {
+
+        enterText(By.xpath("//input[@title='Batch Number']"), itemData.get("batchNumber").asText(), true);
+        selectDropdownByValue(By.xpath("//select[@title='Month']"), itemData.get("expiryMonth").asText(), true);
+        selectDropdownByValue(By.xpath("//select[@title='Year']"), itemData.get("expiryYear").asText(), true);
+        selectDropdownByIndex(By.xpath("//select[@formcontrolname='purchaseUomId']"),
+                itemData.get("purchaseUomIndex").asInt(), true);
+
+        enterText(By.xpath("//input[@type='number' and @title='Qty Per Package']"), itemData.get("qtyPerPackage").asText(), true);
+        enterText(By.xpath("//input[@type='number' and @title='Purchase Quantity']"), itemData.get("purchaseQuantity").asText(), true);
+        enterText(By.xpath("//input[@type='number' and @title='MRP']"), itemData.get("mrp").asText(), true);
+        enterText(By.xpath("//input[@type='number' and @title='Purchase Rate']"), itemData.get("purchaseRate").asText(), true);
+        enterText(By.xpath("//input[@type='number' and @title='Purchase Discount (%)']"), itemData.get("purchaseDiscount").asText(), true);
+        enterText(By.xpath("//input[@type='number' and @title='GST']"), itemData.get("gst").asText(), true);
+
+    }
+
+    private void addStockDetails(JsonNode itemData) {
+
+
         waitForSeconds(3);
-     //   findMandatoryFields();
 
         selectAutoCompleteItem(By.xpath("//input[@formcontrolname='itemName']"),
-                "Sevoflurane",
-                "Sevoflurane Inhalation 10 Bottle");
+                itemData.get("name").asText(),
+                itemData.get("description").asText(), true);
 
-        enterText(By.xpath("//input[@title='Batch Number']"), "BATCH12345");
+        enterText(By.xpath("//input[@title='Batch Number']"), itemData.get("batchNumber").asText(), true);
+        selectDropdownByValue(By.xpath("//select[@title='Month']"), itemData.get("expiryMonth").asText(), true);
+        selectDropdownByValue(By.xpath("//select[@title='Year']"), itemData.get("expiryYear").asText(), true);
+        selectDropdownByIndex(By.xpath("//select[@formcontrolname='purchaseUomId']"),
+                itemData.get("purchaseUomIndex").asInt(), true);
 
-        selectDropdownByValue(By.xpath("//select[@title='Month']"), "03");
-        selectDropdownByValue(By.xpath("//select[@title='Year']"), "2030");
-
-        selectDropdownByIndex(By.xpath("//select[@formcontrolname='purchaseUomId']"), 2);
-
-        enterText(By.xpath("//input[@type='number' and @title='Qty Per Package']"), "5");
-        enterText(By.xpath("//input[@type='number' and @title='Purchase Quantity']"), "10");
-        enterText(By.xpath("//input[@type='number' and @title='MRP']"), "100");
-        enterText(By.xpath("//input[@type='number' and @title='Purchase Rate']"), "500");
-        enterText(By.xpath("//input[@type='number' and @title='Purchase Discount (%)']"), "10");
-        enterText(By.xpath("//input[@type='number' and @title='GST']"), "18");
+        enterText(By.xpath("//input[@type='number' and @title='Qty Per Package']"), itemData.get("qtyPerPackage").asText(), true);
+        enterText(By.xpath("//input[@type='number' and @title='Purchase Quantity']"), itemData.get("purchaseQuantity").asText(), true);
+        enterText(By.xpath("//input[@type='number' and @title='MRP']"), itemData.get("mrp").asText(), true);
+        enterText(By.xpath("//input[@type='number' and @title='Purchase Rate']"), itemData.get("purchaseRate").asText(), true);
+        enterText(By.xpath("//input[@type='number' and @title='Purchase Discount (%)']"), itemData.get("purchaseDiscount").asText(), true);
+        enterText(By.xpath("//input[@type='number' and @title='GST']"), itemData.get("gst").asText(), true);
     }
-
     private void clickElement(By locator) {
-        WebElement element = wait.until(ExpectedConditions.elementToBeClickable(locator));
-        element.click();
+        try {
+            WebElement element = wait.until(ExpectedConditions.elementToBeClickable(locator));
+            element.click();
+        } catch (Exception e) {
+            System.out.println("Normal click failed, using JavaScript click...");
+            WebElement element = driver.findElement(locator);
+            ((JavascriptExecutor) driver).executeScript("arguments[0].click();", element);
+        }
     }
 
-    private void enterText(By locator, String text) {
+
+
+    private void enterText(By locator, String text, boolean editable) {
         WebElement inputField = wait.until(ExpectedConditions.visibilityOfElementLocated(locator));
         inputField.clear();
         inputField.sendKeys(text);
@@ -84,11 +244,6 @@ public class PharmacyFlow extends LoginAndLocationTest {
         Select dropdown = new Select(dropdownElement);
         wait.until(d -> dropdown.getOptions().size() > 1);
 
-        // Print options for debugging
-        List<WebElement> options = dropdown.getOptions();
-        for (WebElement option : options) {
-            System.out.println("Option found: '" + option.getText() + "'");
-        }
         try {
             dropdown.selectByVisibleText(text);
         } catch (NoSuchElementException e) {
@@ -96,18 +251,18 @@ public class PharmacyFlow extends LoginAndLocationTest {
         }
     }
 
-    private void selectDropdownByValue(By locator, String value) {
+    private void selectDropdownByValue(By locator, String value, boolean editable) {
         WebElement dropdownElement = wait.until(ExpectedConditions.elementToBeClickable(locator));
         new Select(dropdownElement).selectByValue(value);
     }
 
-    private void selectDropdownByIndex(By locator, int index) {
+    private void selectDropdownByIndex(By locator, int index, boolean editable) {
         WebElement dropdownElement = wait.until(ExpectedConditions.elementToBeClickable(locator));
         new Select(dropdownElement).selectByIndex(index);
     }
 
 
-    private void selectAutoCompleteItem(By inputLocator, String inputText, String value) {
+    private void selectAutoCompleteItem(By inputLocator, String inputText, String value, boolean editable) {
         boolean optionFound = false;
 
 
@@ -129,6 +284,7 @@ public class PharmacyFlow extends LoginAndLocationTest {
 
 
                 for (WebElement option : options) {
+                    System.out.println("get Text"+option.getText());
                     if (option.getText().trim().equalsIgnoreCase(value)) {
                         wait.until(ExpectedConditions.elementToBeClickable(option)).click(); // Ensure element is clickable
                         System.out.println("Selected: " + option.getText());
@@ -311,5 +467,16 @@ public class PharmacyFlow extends LoginAndLocationTest {
     public String convertMMToMonth(String monthNumber) {
         int monthInt = Integer.parseInt(monthNumber);
         return Month.of(monthInt).getDisplayName(TextStyle.SHORT, Locale.ENGLISH);
+    }
+    public static String invoiceNumberGenerate(int length) {
+        Random random = new Random();
+        String alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+        StringBuilder firstName = new StringBuilder();
+
+        for (int i = 0; i < length; i++) {
+            firstName.append(alphabet.charAt(random.nextInt(alphabet.length())));
+        }
+
+        return firstName.toString();
     }
 }
