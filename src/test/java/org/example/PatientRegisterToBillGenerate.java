@@ -29,7 +29,7 @@ public class PatientRegisterToBillGenerate extends LoginAndLocationTest {
             for (int i = 0; i < tempPatientData.length(); i++) {
                 patientIncrement = i;
                 patientRegisterTest();
-                menuPanelClick("Dashboard");
+                menuPanelClick("Dashboard", false, "");
                 threadTimer(3000);
                 createAppointmentTest();
 
@@ -38,7 +38,7 @@ public class PatientRegisterToBillGenerate extends LoginAndLocationTest {
                     checkingAppointmentTest();
                     addPrescriptionTest();
                     pharmacyBillTest();
-                    menuPanelClick("Dashboard");
+                    menuPanelClick("Dashboard", false, "");
                 } else {
                     System.out.println("Appoinment Created failed. Retrying..");
                 }
@@ -89,7 +89,7 @@ public class PatientRegisterToBillGenerate extends LoginAndLocationTest {
 
     private void patientRegister(String name, String age, String phone, String gender, String panel) {
 
-        menuPanelClick(panel);
+        menuPanelClick(panel, false, "");
         try {
 
             patientFormSubmit(driver);
@@ -152,7 +152,7 @@ public class PatientRegisterToBillGenerate extends LoginAndLocationTest {
 
     private void createAppointment(String name, String admissionType, String doctorName, String scanType, String
             panel) {
-        menuPanelClick(panel);
+        menuPanelClick(panel, false, "");
 
 
         WebElement patientSearchLabel = wait.until(ExpectedConditions.visibilityOfElementLocated(
@@ -278,7 +278,7 @@ public class PatientRegisterToBillGenerate extends LoginAndLocationTest {
 
 
     private void checkingAppointment(String name, String panel) {
-        menuPanelClick(panel);
+        menuPanelClick(panel, false, "");
         WebElement row = wait.until(ExpectedConditions.presenceOfElementLocated(
                 By.xpath("//td[span[contains(text(),'" + patientCode + "')]]/parent::tr")
         ));
@@ -286,7 +286,7 @@ public class PatientRegisterToBillGenerate extends LoginAndLocationTest {
     }
 
     private void addPrescription(String name, String panel) {
-        menuPanelClick(panel);
+        menuPanelClick(panel, false, "");
         try {
 
 
@@ -341,7 +341,7 @@ public class PatientRegisterToBillGenerate extends LoginAndLocationTest {
     }
 
     private void pharmacyBill(String name, String panel) {
-        menuPanelClick(panel);
+        menuPanelClick(panel, false, "");
         WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(20));
 
 

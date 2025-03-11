@@ -43,7 +43,7 @@ public class OpBillGenerateFlow extends LoginAndLocationTest {
             System.out.println("OP Bill flow started for Patient Code: " + patientCode);
 
             // Navigate to the dashboard
-            menuPanelClick("Dashboard");
+            menuPanelClick("Dashboard", false, "");
 
             if (patientCode != null) {
                 // Create an appointment for the patient
@@ -56,7 +56,7 @@ public class OpBillGenerateFlow extends LoginAndLocationTest {
 
                     if (isAppointmentCheckedIn) {
                         // Navigate to the OP menu
-                        menuPanelClick("OP");
+                        menuPanelClick("OP", false, "");
 
                         // Define billing statuses
                         List<String> status = Arrays.asList("Partially Paid", "Paid");

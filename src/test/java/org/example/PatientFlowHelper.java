@@ -22,7 +22,7 @@ public class PatientFlowHelper {
         String phone = patient.getString("patientPhone");
         String gender = patient.getString("gender");
         String patientCode;
-        baseTest.menuPanelClick(panel);
+        baseTest.menuPanelClick(panel, false, "");
         try {
 
             patientFormSubmit(driver,wait);
@@ -190,7 +190,7 @@ public class PatientFlowHelper {
         String name=patient.getString("patientName");
         String admissionType=patient.getString("admissionType");
         String doctorName=patient.getString("doctorName");  String scanType=patient.getString("scanType");
-        baseTest.menuPanelClick(panel);
+        baseTest.menuPanelClick(panel, false, "");
 
         WebElement patientSearchLabel = wait.until(ExpectedConditions.refreshed(ExpectedConditions.visibilityOfElementLocated(
                 By.xpath("//label[contains(text(), 'Patient Search')]")
@@ -348,7 +348,7 @@ public class PatientFlowHelper {
     public boolean checkingAppointmentTest(BaseTest baseTest,WebDriver driver, WebDriverWait wait, String panel, String patientCode) {
 
         try {
-            baseTest.menuPanelClick(panel);
+            baseTest.menuPanelClick(panel, false, "");
             WebElement row = wait.until(ExpectedConditions.refreshed(ExpectedConditions.presenceOfElementLocated(
                     By.xpath("//td[span[contains(text(),'" + patientCode + "')]]/parent::tr")
             )));

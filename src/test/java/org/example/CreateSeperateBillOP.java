@@ -19,7 +19,7 @@ public class CreateSeperateBillOP extends LoginAndLocationTest {
         if (isLoginSuccessful) {
 
             // Navigate to the OP menu
-            menuPanelClick("OP");
+            menuPanelClick("OP", false, "");
             By opBillsLocator = By.xpath("//li[contains(@class, 'breadcrumb-item') and contains(text(), 'OP Bills')]");
 
             while (driver.findElements(opBillsLocator).isEmpty()) {

@@ -16,7 +16,7 @@ public class FacilityConfiguration extends LoginAndLocationTest {
     public void FacilityConfigurateAgeInMonthEnable()
     {
         if(isLoginSuccessful) {
-            menuPanelClick("Facility Configurations");
+            menuPanelClick("Facility Configurations", false, "");
             try {
                 Thread.sleep(5000);
             } catch (InterruptedException e) {
@@ -77,7 +77,7 @@ public class FacilityConfiguration extends LoginAndLocationTest {
 //        }
 //    }
 
-    protected void menuPanelClick(String panel) {
+    protected void menuPanelClick(String panel, Boolean subPanel, String subPanelName) {
         threadTimer(3000);
         WebElement menuButton = driver.findElement(By.id("mega-menu-nav-btn"));
         if (menuButton.isDisplayed()) {

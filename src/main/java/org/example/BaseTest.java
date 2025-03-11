@@ -3,15 +3,12 @@ package org.example;
 import org.json.JSONArray;
 import org.openqa.selenium.*;
 import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.Sleeper;
 import org.openqa.selenium.support.ui.WebDriverWait;
-import org.testng.Assert;
 import org.testng.annotations.AfterClass;
-import org.testng.annotations.AfterSuite;
 import org.testng.annotations.BeforeClass;
-import org.testng.annotations.BeforeSuite;
-import io.github.bonigarcia.wdm.WebDriverManager;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -78,7 +75,7 @@ public class BaseTest {
         }
     }
 
-    protected void menuPanelClick(String panel) {
+    protected void menuPanelClick(String panel, Boolean subPanel, String subPanelName) {
         wait =new WebDriverWait(driver,Duration.ofSeconds(50));
         threadTimer(3000);
         WebElement menuButton = driver.findElement(By.id("mega-menu-nav-btn"));
@@ -91,13 +88,37 @@ public class BaseTest {
         threadTimer(3000);
 
         wait.until(ExpectedConditions.invisibilityOfElementLocated(By.className("page-loader-wrapper")));
-        WebElement panelClick = wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//a[contains(text(),'" + panel + "')]")));
 
-        JavascriptExecutor js = (JavascriptExecutor) driver;
-        js.executeScript("arguments[0].style.border='3px solid red';", panelClick); // Highlight
-        js.executeScript("arguments[0].scrollIntoView(true);", panelClick);
-        panelClick.click();
-        System.out.println("✅ Panel Click :-"+panel);
+
+
+
+
+        if(subPanel) {
+
+            WebElement stockElement = wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//a[normalize-space()='"+panel+"']")));
+            stockElement.click();
+
+            System.out.println("+sub panel name"+panel+""+subPanel);
+            threadTimer(3000);
+            WebElement panelClick = wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//a[normalize-space()='"+subPanelName+"']")));
+
+            JavascriptExecutor js = (JavascriptExecutor) driver;
+            js.executeScript("arguments[0].style.border='3px solid red';", panelClick); // Highlight
+            js.executeScript("arguments[0].scrollIntoView(true);", panelClick);
+            panelClick.click();
+            System.out.println("✅ Panel Click :-"+panel);
+        }
+        else {
+            WebElement panelClick = wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//a[contains(text(),'" + panel + "')]")));
+
+            JavascriptExecutor js = (JavascriptExecutor) driver;
+            js.executeScript("arguments[0].style.border='3px solid red';", panelClick); // Highlight
+            js.executeScript("arguments[0].scrollIntoView(true);", panelClick);
+            panelClick.click();
+            System.out.println("✅ Panel Click :-"+panel);
+        }
+
+
 
     }
 

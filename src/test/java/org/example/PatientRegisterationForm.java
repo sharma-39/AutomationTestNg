@@ -1,6 +1,5 @@
 package org.example;
 
-import com.sun.source.tree.AssertTree;
 import org.json.JSONObject;
 import org.openqa.selenium.*;
 import org.openqa.selenium.interactions.Actions;
@@ -8,14 +7,10 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.testng.Assert;
-import org.testng.ITestContext;
-import org.testng.ITestResult;
-import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
-import java.lang.reflect.Method;
 import java.time.Duration;
 import java.time.Month;
 import java.time.format.TextStyle;
@@ -162,7 +157,7 @@ public class PatientRegisterationForm extends LoginAndLocationTest {
     @Test(priority = 3, dependsOnMethods = {"testLogin"})
     public void runOpenMenu() {
         if (isLoginSuccessful) {
-            menuPanelClick("Patient Registration");
+            menuPanelClick("Patient Registration", false, "");
         }
     }
 
@@ -600,6 +595,7 @@ public class PatientRegisterationForm extends LoginAndLocationTest {
         WebElement dateRangePicker = wait.until(ExpectedConditions.visibilityOfElementLocated(
                 By.cssSelector("div.daterangepicker.ltr.auto-apply.single.opensright.show-calendar")
         ));
+
 
         JavascriptExecutor js = (JavascriptExecutor) driver;
         js.executeScript("arguments[0].style.border='2px solid purple'", dateRangePicker);

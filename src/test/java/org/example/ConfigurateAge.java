@@ -4,7 +4,6 @@ import org.json.JSONObject;
 import org.openqa.selenium.*;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
-import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
@@ -55,7 +54,7 @@ public class ConfigurateAge extends LoginAndLocationTest {
                     namePatientAndAge(ageLabel.get(j));
                     patientCode = patientHelper.patientRegisterTest(this, patient, driver, wait, "Patient Registration");
                     logSummary.append("✅ Patient Registered: ").append(patientCode).append(" | ");
-                    menuPanelClick("Dashboard");
+                    menuPanelClick("Dashboard", false, "");
                     threadTimer(3000);
                     if (patientCode != null) {
                         isAppoinmentCreated = patientHelper.createAppointment(this, patient, driver, wait, "Create Appointment", patientCode);
@@ -78,7 +77,7 @@ public class ConfigurateAge extends LoginAndLocationTest {
                                 else {
                                     break;
                                 }
-                                menuPanelClick("Dashboard");
+                                menuPanelClick("Dashboard", false, "");
                             } else {
                                 logSummary.append("❌ Appointment Check in Issue");
                             }
@@ -109,7 +108,7 @@ public class ConfigurateAge extends LoginAndLocationTest {
         patientLabelCaption = null;
         JSONObject patient = tempPatientData.getJSONObject(patientIncrement);
         if (isLoginSuccessful) {
-            menuPanelClick("Facility Configurations");
+            menuPanelClick("Facility Configurations", false, "");
             threadTimer(5000);
 
             WebElement ageFormatElement = driver.findElement(By.xpath("//h2[contains(text(), 'Age Format In Bill')]"));
@@ -189,7 +188,7 @@ public class ConfigurateAge extends LoginAndLocationTest {
     }
 
     private void addPrescription(String name, String panel, String prescriptionSearch, String prescriptionSelect) {
-        menuPanelClick(panel);
+        menuPanelClick(panel, false, "");
         try {
             threadTimer(3000);
 
@@ -299,7 +298,7 @@ public class ConfigurateAge extends LoginAndLocationTest {
     }
 
     private void pharmacyBill(String name, String panel) {
-        menuPanelClick(panel);
+        menuPanelClick(panel, false, "");
         WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(20));
 
 

@@ -18,7 +18,7 @@ public class UrlEmpedded extends LoginAndLocationTest {
     public void OpenPharmacyClickPrint()
     {
         if(isLoginSuccessful) {
-            menuPanelClick("Pharmacy");
+            menuPanelClick("Pharmacy", false, "");
 
             List<String> containTest = new ArrayList<>();
             containTest.add("Dr.David T");
