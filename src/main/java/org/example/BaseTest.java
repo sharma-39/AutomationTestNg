@@ -90,23 +90,34 @@ public class BaseTest {
         wait.until(ExpectedConditions.invisibilityOfElementLocated(By.className("page-loader-wrapper")));
 
 
-
-
+        System.out.println("Parent panel Name"+panel);
 
         if(subPanel) {
 
-            WebElement stockElement = wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//a[normalize-space()='"+panel+"']")));
-            stockElement.click();
+            // Step 1: Click "Master" to Expand the Dropdown
+            WebElement masterMenu = wait.until(ExpectedConditions.elementToBeClickable(
+                    By.xpath("//a[normalize-space()='"+panel+"']")));
+            masterMenu.click();
+            System.out.println("✅ Clicked on Master");
 
-            System.out.println("+sub panel name"+panel+""+subPanel);
-            threadTimer(3000);
-            WebElement panelClick = wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//a[normalize-space()='"+subPanelName+"']")));
+// Step 2: Click "Pharmacy" Inside the Dropdown
+            WebElement pharmacyLink = wait.until(ExpectedConditions.elementToBeClickable(
+                    By.xpath("//ul[contains(@class, 'show-submenu')]//a[normalize-space()='"+subPanelName+"']")));
 
             JavascriptExecutor js = (JavascriptExecutor) driver;
-            js.executeScript("arguments[0].style.border='3px solid red';", panelClick); // Highlight
-            js.executeScript("arguments[0].scrollIntoView(true);", panelClick);
-            panelClick.click();
-            System.out.println("✅ Panel Click :-"+panel);
+            js.executeScript("arguments[0].scrollIntoView(true);", pharmacyLink);
+            js.executeScript("arguments[0].style.border='3px solid blue';", pharmacyLink); // Highlight
+
+            try {
+                pharmacyLink.click();
+            } catch (Exception e) {
+                System.out.println("Using JavaScript click as fallback.");
+                js.executeScript("arguments[0].click();", pharmacyLink);
+            }
+
+            System.out.println("✅ Clicked on Pharmacy");
+
+
         }
         else {
             WebElement panelClick = wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//a[contains(text(),'" + panel + "')]")));
@@ -122,6 +133,12 @@ public class BaseTest {
 
     }
 
+    protected void verifyPanelName(String expectedText) {
+        WebElement breadcrumb = wait.until(ExpectedConditions.visibilityOfElementLocated(
+                By.xpath("//li[@class='breadcrumb-item active breadcrums-data' and normalize-space()='" + expectedText + "']")
+        ));
+        System.out.println("Breadcrumb found: " + breadcrumb.getText());
+    }
     @AfterClass
     public void tearDown() {
 //

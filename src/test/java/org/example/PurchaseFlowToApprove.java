@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Random;
 
-public class PharmacyFlow extends LoginAndLocationTest {
+public class PurchaseFlowToApprove extends LoginAndLocationTest {
 
     @DataProvider(name = "stockData")
     public Object[][] getStockData() throws IOException {
@@ -293,12 +293,6 @@ public class PharmacyFlow extends LoginAndLocationTest {
         }
     }
 
-    private void verifyPanelName(String expectedText) {
-        WebElement breadcrumb = wait.until(ExpectedConditions.visibilityOfElementLocated(
-                By.xpath("//li[@class='breadcrumb-item active breadcrums-data' and normalize-space()='" + expectedText + "']")
-        ));
-        System.out.println("Breadcrumb found: " + breadcrumb.getText());
-    }
 
     private void findMandatoryFields() {
         List<WebElement> asteriskElements = driver.findElements(By.xpath("//span[contains(@style,'color: red') and text()='*']"));
@@ -473,10 +467,10 @@ public class PharmacyFlow extends LoginAndLocationTest {
 
         int randomPart = 10000 + new Random().nextInt(90000); // Generate a 5-digit random number
 
-        String invoiceNumber = prefix + "-" + datePart + "-" + randomPart; // Create invoice number
+        String generateNumber = prefix + "-" + datePart + "-" + randomPart; // Create invoice number
 
-        System.out.println("Generated Invoice Number: " + invoiceNumber);
-        return invoiceNumber;
+        System.out.println("Generated Number: " + generateNumber);
+        return generateNumber;
     }
 
     private void clickButtonInRow(String searchText, String buttonTitle) {
