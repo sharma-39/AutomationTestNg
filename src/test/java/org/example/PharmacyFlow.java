@@ -34,38 +34,42 @@ public class PharmacyFlow extends LoginAndLocationTest {
     @Test(priority = 3, dataProvider = "stockData")
     public void testPharmacyFlow(JsonNode stockData) {
 
-        boolean afterApprovelEdit = false;
-        menuPanelClick("Stock", true, "Purchase");
-        waitForSeconds(3);
-        verifyPanelName("Purchase Management");
-        String invoiceNumber = addStock(stockData);
-        System.out.println("STOCK Created Successfully :-Invoice number " + invoiceNumber);
+        boolean backdrop=false;
+        while(!backdrop) {
+            boolean afterApprovelEdit = false;
+            menuPanelClick("Stock", true, "Purchase");
+            waitForSeconds(3);
+            verifyPanelName("Purchase Management");
+            String invoiceNumber = addStock(stockData);
+            System.out.println("STOCK Created Successfully :-Invoice number " + invoiceNumber);
 
-        backdropOccur();
-        editStock(invoiceNumber, stockData);
-        System.out.println("STOCK Edit Successfully :-Invoice number " + invoiceNumber);
-        backdropOccur();
-
-        menuPanelClick("Approval", true, "Purchase Edit Approval");
-
-        verifyPanelName("Purchase Edit Approval");
-
-        if (afterApprovelEdit) {
+            backdropOccur();
             editStock(invoiceNumber, stockData);
+            System.out.println("STOCK Edit Successfully :-Invoice number " + invoiceNumber);
+            backdropOccur();
+
+            menuPanelClick("Approval", true, "Purchase Edit Approval");
+
+            verifyPanelName("Purchase Edit Approval");
+
+            if (afterApprovelEdit) {
+                editStock(invoiceNumber, stockData);
+            }
+            System.out.println("Processing approvel  :-Invoice number " + invoiceNumber);
+            approvelPurchase(invoiceNumber);
         }
-        System.out.println("Processing approvel  :-Invoice number " + invoiceNumber);
-        approvelPurchase(invoiceNumber);
     }
 
     private void backdropOccur() {
         if (!driver.findElements(By.className("modal-backdrop")).isEmpty()) {
             System.out.println("Modal backdrop detected! Reloading the page...");
-            driver.navigate().refresh(); // Refresh the page
-
             // Wait for the page to reload and ensure the modal disappears
             wait.until(ExpectedConditions.invisibilityOfElementLocated(By.className("modal-backdrop")));
             JavascriptExecutor js = (JavascriptExecutor) driver;
             js.executeScript("location.reload()");
+            threadTimer(3000);
+            menuPanelClick("Dashboard", false, "");
+            verifyPanelName("Dashboard");
 
         } else {
             System.out.println("No modal backdrop detected, proceeding with test...");
@@ -73,36 +77,9 @@ public class PharmacyFlow extends LoginAndLocationTest {
     }
 
     private void approvelPurchase(String invoiceNumber) {
-
-        System.out.println("approve invoice number " + invoiceNumber);
-
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(50));
-        threadTimer(3000);
-        wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//table")));
-
-        List<WebElement> rows = driver.findElements(By.xpath("//table//tr"));
-
-        System.out.println("Total rows found: " + rows.size());
-        for (int i = 0; i < rows.size(); i++) {
-            if (rows.get(i).getText().contains(invoiceNumber)) {
-                System.out.println("Row Found at Index: " + (i + 1));
-
-                // Highlight the row
-                JavascriptExecutor js = (JavascriptExecutor) driver;
-                js.executeScript("arguments[0].style.backgroundColor = 'yellow'", rows.get(i));
-
-                ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);", rows.get(i));
-
-                System.out.println("Row Highlighted!");
-                WebElement edit = rows.get(i).findElement(By.xpath(".//button[@title='Approve']"));
-                // Scroll to the button
-                edit.click(); // Click the button
-                break;
-            }
-        }
+        clickButtonInRow(invoiceNumber, "Approve");
         threadTimer(3000);
         clickElement(By.xpath("//button[contains(text(),'Approve & Close')]"));
-
     }
 
     private String addStock(JsonNode stockData) {
@@ -148,26 +125,10 @@ public class PharmacyFlow extends LoginAndLocationTest {
     }
 
     private void editStock(String invoiceNumber, JsonNode itemData) {
-        threadTimer(3000);
-        wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//table")));
-        List<WebElement> rows = driver.findElements(By.xpath("//table//tr"));
-        for (int i = 0; i < rows.size(); i++) {
-            if (rows.get(i).getText().contains(invoiceNumber)) {
-                System.out.println("Row Found at Index: " + (i + 1));
 
-                // Highlight the row
-                JavascriptExecutor js = (JavascriptExecutor) driver;
-                js.executeScript("arguments[0].style.backgroundColor = 'yellow'", rows.get(i));
+        //find this row and click
+        clickButtonInRow(invoiceNumber, "Edit");
 
-                ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);", rows.get(i));
-
-                System.out.println("Row Highlighted!");
-                WebElement edit = rows.get(i).findElement(By.xpath(".//button[@title='Edit']"));
-                // Scroll to the button
-                edit.click(); // Click the button
-                break;
-            }
-        }
         JsonNode itemsArray = itemData.path("stock").path("items");
         for (int i = 0; i < itemsArray.size(); i++) {
             if (itemsArray.get(i).get("edit").asBoolean()) {
@@ -516,6 +477,56 @@ public class PharmacyFlow extends LoginAndLocationTest {
 
         System.out.println("Generated Invoice Number: " + invoiceNumber);
         return invoiceNumber;
+    }
+
+    private void clickButtonInRow(String searchText, String buttonTitle) {
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(50));
+
+        // Wait for the table to be visible
+        wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//table")));
+
+        // Get all rows in the table
+        List<WebElement> rows = driver.findElements(By.xpath("//table//tr"));
+
+        System.out.println("Total rows found: " + rows.size());
+
+        for (WebElement row : rows) {
+            if (row.getText().contains(searchText)) {
+                System.out.println("Row Found containing: " + searchText);
+
+                // Highlight the row
+                highlightElement(row);
+
+                // Scroll into view
+                ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);", row);
+                System.out.println("Row Highlighted!");
+
+                // Find the button in the row and click it
+                WebElement button = row.findElement(By.xpath(".//button[@title='" + buttonTitle + "']"));
+                clickElement(button);
+                break;
+            }
+        }
+    }
+
+    /**
+     * Highlights a web element using JavaScript.
+     */
+    private void highlightElement(WebElement element) {
+        JavascriptExecutor js = (JavascriptExecutor) driver;
+        js.executeScript("arguments[0].style.backgroundColor = 'yellow'", element);
+    }
+
+    /**
+     * Clicks an element with proper handling.
+     */
+    private void clickElement(WebElement element) {
+        try {
+            element.click();
+        } catch (Exception e) {
+            System.out.println("Normal click failed, using JavaScript click...");
+            ((JavascriptExecutor) driver).executeScript("arguments[0].click();", element);
+        }
     }
 
 }
