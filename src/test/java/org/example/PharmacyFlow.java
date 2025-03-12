@@ -1,6 +1,5 @@
 package org.example;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.openqa.selenium.*;
@@ -14,7 +13,10 @@ import org.testng.annotations.Test;
 import java.io.File;
 import java.io.IOException;
 import java.time.Duration;
+import java.time.Instant;
 import java.time.Month;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.time.format.TextStyle;
 import java.util.List;
 import java.util.Locale;
@@ -32,29 +34,58 @@ public class PharmacyFlow extends LoginAndLocationTest {
     @Test(priority = 3, dataProvider = "stockData")
     public void testPharmacyFlow(JsonNode stockData) {
 
-        boolean afterApprovelEdit=false;
-       // menuPanelClick("Stock", true, "Purchase");
+        boolean afterApprovelEdit = false;
+        menuPanelClick("Stock", true, "Purchase");
         waitForSeconds(3);
-     //   verifyPanelName("Purchase Management");
-     //   String invoiceNumber= addStock(stockData);
-        String invoiceNumber="123QDPj";
-       // editStock(invoiceNumber,stockData);
-        menuPanelClick("Approval",true,"Purchase Edit Approval");
+        verifyPanelName("Purchase Management");
+        String invoiceNumber = addStock(stockData);
+        System.out.println("STOCK Created Successfully :-Invoice number " + invoiceNumber);
+
+        backdropOccur();
+        editStock(invoiceNumber, stockData);
+        System.out.println("STOCK Edit Successfully :-Invoice number " + invoiceNumber);
+        backdropOccur();
+
+        menuPanelClick("Approval", true, "Purchase Edit Approval");
+
         verifyPanelName("Purchase Edit Approval");
-        if(afterApprovelEdit)
-        {
-            editStock(invoiceNumber,stockData);
+
+        if (afterApprovelEdit) {
+            editStock(invoiceNumber, stockData);
         }
-        System.out.println("approvel purchase");
+        System.out.println("Processing approvel  :-Invoice number " + invoiceNumber);
         approvelPurchase(invoiceNumber);
+    }
+
+    private void backdropOccur() {
+        if (!driver.findElements(By.className("modal-backdrop")).isEmpty()) {
+            System.out.println("Modal backdrop detected! Reloading the page...");
+            driver.navigate().refresh(); // Refresh the page
+
+            // Wait for the page to reload and ensure the modal disappears
+            wait.until(ExpectedConditions.invisibilityOfElementLocated(By.className("modal-backdrop")));
+            JavascriptExecutor js = (JavascriptExecutor) driver;
+            js.executeScript("location.reload()");
+
+        } else {
+            System.out.println("No modal backdrop detected, proceeding with test...");
+        }
     }
 
     private void approvelPurchase(String invoiceNumber) {
 
+        System.out.println("approve invoice number " + invoiceNumber);
+
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(50));
+        threadTimer(3000);
+        wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//table")));
+
         List<WebElement> rows = driver.findElements(By.xpath("//table//tr"));
+
+        System.out.println("Total rows found: " + rows.size());
         for (int i = 0; i < rows.size(); i++) {
             if (rows.get(i).getText().contains(invoiceNumber)) {
-                System.out.println("Row Found at Index: " + (i+ 1));
+                System.out.println("Row Found at Index: " + (i + 1));
 
                 // Highlight the row
                 JavascriptExecutor js = (JavascriptExecutor) driver;
@@ -63,11 +94,15 @@ public class PharmacyFlow extends LoginAndLocationTest {
                 ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);", rows.get(i));
 
                 System.out.println("Row Highlighted!");
-                WebElement edit = rows.get(i).findElement(By.xpath(".//button[@title='Approve']"));; // Scroll to the button
+                WebElement edit = rows.get(i).findElement(By.xpath(".//button[@title='Approve']"));
+                // Scroll to the button
                 edit.click(); // Click the button
                 break;
             }
         }
+        threadTimer(3000);
+        clickElement(By.xpath("//button[contains(text(),'Approve & Close')]"));
+
     }
 
     private String addStock(JsonNode stockData) {
@@ -78,8 +113,8 @@ public class PharmacyFlow extends LoginAndLocationTest {
                 supplier.get("name").asText(),
                 supplier.get("id").asText());
 
-        String invoiceNumber =stockData.get("stock").get("invoiceNumber").asText()+""+ invoiceNumberGenerate(4);
-        enterText(By.cssSelector("input[formcontrolname='invoiceNumber']"),invoiceNumber,
+        String invoiceNumber = generateRondamNumber("INV");
+        enterText(By.cssSelector("input[formcontrolname='invoiceNumber']"), invoiceNumber,
                 true);
 
         invoiceDate(stockData.get("stock").get("invoiceDate").asText(), "purDate");
@@ -91,10 +126,8 @@ public class PharmacyFlow extends LoginAndLocationTest {
                 stockData.get("stock").get("tcs").asText(), true);
 
 
-
         clickElement(By.xpath("//div[contains(@class, 'addIcon-button')]"));
-        for(int i=0;i<stockData.get("stock").get("items").size();i++)
-        {
+        for (int i = 0; i < stockData.get("stock").get("items").size(); i++) {
             addStockDetails(stockData.get("stock").get("items").get(i));
             clickElement(By.xpath("//button[contains(text(),'Add New')]"));
 
@@ -102,21 +135,21 @@ public class PharmacyFlow extends LoginAndLocationTest {
 
         threadTimer(3000);
 
-        clickElement(By.xpath("//button[contains(text(),'Close') and not(contains(text(),'Save & Close'))]"));
+        clickElement(By.cssSelector("button.saveNdClose.ng-star-inserted"));
         threadTimer(3000);
 
 
-        clickElement(By.xpath("//button[contains(text(),'Save & Close')]"));
+        clickElement(By.cssSelector("button.saveNdClose.ng-star-inserted"));
 
 
         return invoiceNumber;
 
 
     }
-    private void editStock(String invoiceNumber, JsonNode itemData)
-    {
 
-
+    private void editStock(String invoiceNumber, JsonNode itemData) {
+        threadTimer(3000);
+        wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//table")));
         List<WebElement> rows = driver.findElements(By.xpath("//table//tr"));
         for (int i = 0; i < rows.size(); i++) {
             if (rows.get(i).getText().contains(invoiceNumber)) {
@@ -129,72 +162,61 @@ public class PharmacyFlow extends LoginAndLocationTest {
                 ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);", rows.get(i));
 
                 System.out.println("Row Highlighted!");
-                WebElement edit = rows.get(i).findElement(By.xpath(".//button[@title='Edit']"));; // Scroll to the button
+                WebElement edit = rows.get(i).findElement(By.xpath(".//button[@title='Edit']"));
+                // Scroll to the button
                 edit.click(); // Click the button
                 break;
             }
         }
         JsonNode itemsArray = itemData.path("stock").path("items");
         for (int i = 0; i < itemsArray.size(); i++) {
-           if(itemsArray.get(i).get("edit").asBoolean()){
-               threadTimer(1000);
+            if (itemsArray.get(i).get("edit").asBoolean()) {
+                threadTimer(1000);
 
-               String targetItem = itemsArray.get(i).get("description").asText();
-               List<WebElement> rowsItems = driver.findElements(By.xpath("//table//tr"));
-               for (int j = 0; j < rowsItems.size(); j++) {
-                   if (rowsItems.get(j).getText().contains(targetItem)) {
-                       System.out.println("Row Found at Index: " + (j + 1));
+                String targetItem = itemsArray.get(i).get("description").asText();
+                List<WebElement> rowsItems = driver.findElements(By.xpath("//table//tr"));
+                for (int j = 0; j < rowsItems.size(); j++) {
+                    if (rowsItems.get(j).getText().contains(targetItem)) {
+                        System.out.println("Row Found at Index: " + (j + 1));
 
-                       // Highlight the row
-                       JavascriptExecutor js = (JavascriptExecutor) driver;
-                       js.executeScript("arguments[0].style.backgroundColor = 'yellow'", rowsItems.get(j));
-                       ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);", rowsItems.get(j));
-                       System.out.println("Row Highlighted!");
-                       WebElement viewButton = rowsItems.get(j).findElement(By.xpath(".//button[@title='Edit']"));; // Scroll to the button
-                       viewButton.click(); // Click the button
+                        // Highlight the row
+                        JavascriptExecutor js = (JavascriptExecutor) driver;
+                        js.executeScript("arguments[0].style.backgroundColor = 'yellow'", rowsItems.get(j));
+                        ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);", rowsItems.get(j));
+                        System.out.println("Row Highlighted!");
+                        WebElement viewButton = rowsItems.get(j).findElement(By.xpath(".//button[@title='Edit']"));
+                        // Scroll to the button
+                        viewButton.click(); // Click the button
 
-                       threadTimer(2000);
-                       enterText(By.xpath("//input[@title='Batch Number']"), itemsArray.get(i).get("batchNumber").asText(), true);
-                       selectDropdownByValue(By.xpath("//select[@title='Month']"), itemsArray.get(i).get("expiryMonth").asText(), true);
-                       selectDropdownByValue(By.xpath("//select[@title='Year']"), itemsArray.get(i).get("expiryYear").asText(), true);
-                       selectDropdownByIndex(By.xpath("//select[@formcontrolname='purchaseUomId']"),
-                               itemsArray.get(i).get("purchaseUomIndex").asInt(), true);
+                        threadTimer(2000);
+                        enterText(By.xpath("//input[@title='Batch Number']"), itemsArray.get(i).get("batchNumber").asText(), true);
+                        selectDropdownByValue(By.xpath("//select[@title='Month']"), itemsArray.get(i).get("expiryMonth").asText(), true);
+                        selectDropdownByValue(By.xpath("//select[@title='Year']"), itemsArray.get(i).get("expiryYear").asText(), true);
+                        selectDropdownByIndex(By.xpath("//select[@formcontrolname='purchaseUomId']"),
+                                itemsArray.get(i).get("purchaseUomIndex").asInt(), true);
 
-                       enterText(By.xpath("//input[@type='number' and @title='Qty Per Package']"), itemsArray.get(i).get("qtyPerPackage").asText(), true);
-                       enterText(By.xpath("//input[@type='number' and @title='Purchase Quantity']"), itemsArray.get(i).get("purchaseQuantity").asText(), true);
-                       enterText(By.xpath("//input[@type='number' and @title='MRP']"), itemsArray.get(i).get("mrp").asText(), true);
-                       enterText(By.xpath("//input[@type='number' and @title='Purchase Rate']"), itemsArray.get(i).get("purchaseRate").asText(), true);
-                       enterText(By.xpath("//input[@type='number' and @title='Purchase Discount (%)']"), itemsArray.get(i).get("purchaseDiscount").asText(), true);
-                       enterText(By.xpath("//input[@type='number' and @title='GST']"),itemsArray.get(i).get("gst").asText(), true);
+                        enterText(By.xpath("//input[@type='number' and @title='Qty Per Package']"), itemsArray.get(i).get("qtyPerPackage").asText(), true);
+                        enterText(By.xpath("//input[@type='number' and @title='Purchase Quantity']"), itemsArray.get(i).get("purchaseQuantity").asText(), true);
+                        enterText(By.xpath("//input[@type='number' and @title='MRP']"), itemsArray.get(i).get("mrp").asText(), true);
+                        enterText(By.xpath("//input[@type='number' and @title='Purchase Rate']"), itemsArray.get(i).get("purchaseRate").asText(), true);
+                        enterText(By.xpath("//input[@type='number' and @title='Purchase Discount (%)']"), itemsArray.get(i).get("purchaseDiscount").asText(), true);
+                        enterText(By.xpath("//input[@type='number' and @title='GST']"), itemsArray.get(i).get("gst").asText(), true);
 
-                       clickElement(By.xpath("(//button[contains(text(),'Save & Close')])[1]"));
 
-                   }
-               }
+                        System.out.println("fill all record edit");
+                        threadTimer(2000);
+                        clickElement(By.xpath("(//button[contains(text(),'Save & Close')])[1]"));
 
-               threadTimer(500);
-               clickElement(By.xpath("(//button[contains(text(),'Save & Close')])"));
+                    }
+                }
 
-           };
+                threadTimer(500);
+                clickElement(By.xpath("(//button[contains(text(),'Save & Close')])"));
+
+            }
         }
     }
 
-    private void editableFieldsStockDetails(JsonNode itemData) {
-
-        enterText(By.xpath("//input[@title='Batch Number']"), itemData.get("batchNumber").asText(), true);
-        selectDropdownByValue(By.xpath("//select[@title='Month']"), itemData.get("expiryMonth").asText(), true);
-        selectDropdownByValue(By.xpath("//select[@title='Year']"), itemData.get("expiryYear").asText(), true);
-        selectDropdownByIndex(By.xpath("//select[@formcontrolname='purchaseUomId']"),
-                itemData.get("purchaseUomIndex").asInt(), true);
-
-        enterText(By.xpath("//input[@type='number' and @title='Qty Per Package']"), itemData.get("qtyPerPackage").asText(), true);
-        enterText(By.xpath("//input[@type='number' and @title='Purchase Quantity']"), itemData.get("purchaseQuantity").asText(), true);
-        enterText(By.xpath("//input[@type='number' and @title='MRP']"), itemData.get("mrp").asText(), true);
-        enterText(By.xpath("//input[@type='number' and @title='Purchase Rate']"), itemData.get("purchaseRate").asText(), true);
-        enterText(By.xpath("//input[@type='number' and @title='Purchase Discount (%)']"), itemData.get("purchaseDiscount").asText(), true);
-        enterText(By.xpath("//input[@type='number' and @title='GST']"), itemData.get("gst").asText(), true);
-
-    }
 
     private void addStockDetails(JsonNode itemData) {
 
@@ -205,7 +227,7 @@ public class PharmacyFlow extends LoginAndLocationTest {
                 itemData.get("name").asText(),
                 itemData.get("description").asText(), true);
 
-        enterText(By.xpath("//input[@title='Batch Number']"), itemData.get("batchNumber").asText(), true);
+        enterText(By.xpath("//input[@title='Batch Number']"), generateRondamNumber("BAT"), true);
         selectDropdownByValue(By.xpath("//select[@title='Month']"), itemData.get("expiryMonth").asText(), true);
         selectDropdownByValue(By.xpath("//select[@title='Year']"), itemData.get("expiryYear").asText(), true);
         selectDropdownByIndex(By.xpath("//select[@formcontrolname='purchaseUomId']"),
@@ -218,17 +240,18 @@ public class PharmacyFlow extends LoginAndLocationTest {
         enterText(By.xpath("//input[@type='number' and @title='Purchase Discount (%)']"), itemData.get("purchaseDiscount").asText(), true);
         enterText(By.xpath("//input[@type='number' and @title='GST']"), itemData.get("gst").asText(), true);
     }
+
     private void clickElement(By locator) {
+
         try {
             WebElement element = wait.until(ExpectedConditions.elementToBeClickable(locator));
             element.click();
         } catch (Exception e) {
             System.out.println("Normal click failed, using JavaScript click...");
-            WebElement element = driver.findElement(locator);
-            ((JavascriptExecutor) driver).executeScript("arguments[0].click();", element);
-        }
-    }
 
+        }
+
+    }
 
 
     private void enterText(By locator, String text, boolean editable) {
@@ -284,7 +307,7 @@ public class PharmacyFlow extends LoginAndLocationTest {
 
 
                 for (WebElement option : options) {
-                    System.out.println("get Text"+option.getText());
+                    System.out.println("get Text" + option.getText());
                     if (option.getText().trim().equalsIgnoreCase(value)) {
                         wait.until(ExpectedConditions.elementToBeClickable(option)).click(); // Ensure element is clickable
                         System.out.println("Selected: " + option.getText());
@@ -468,6 +491,7 @@ public class PharmacyFlow extends LoginAndLocationTest {
         int monthInt = Integer.parseInt(monthNumber);
         return Month.of(monthInt).getDisplayName(TextStyle.SHORT, Locale.ENGLISH);
     }
+
     public static String invoiceNumberGenerate(int length) {
         Random random = new Random();
         String alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
@@ -479,4 +503,19 @@ public class PharmacyFlow extends LoginAndLocationTest {
 
         return firstName.toString();
     }
+
+    public String generateRondamNumber(String prefix) {
+
+        String datePart = Instant.now()
+                .atZone(ZoneId.systemDefault()) // Convert to system time zone
+                .format(DateTimeFormatter.ofPattern("yyyyMMdd")); // Format date
+
+        int randomPart = 10000 + new Random().nextInt(90000); // Generate a 5-digit random number
+
+        String invoiceNumber = prefix + "-" + datePart + "-" + randomPart; // Create invoice number
+
+        System.out.println("Generated Invoice Number: " + invoiceNumber);
+        return invoiceNumber;
+    }
+
 }

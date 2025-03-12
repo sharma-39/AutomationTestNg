@@ -23,7 +23,7 @@
         "purchaseRate": 500,
         "purchaseDiscount": 10,
         "gst": 18,
-        "edit": true
+        "edit": false
       },
       {
         "name": "Hydroxyzine",
