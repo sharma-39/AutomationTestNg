@@ -59,7 +59,7 @@ public class BaseTest {
 //                new UserDetails("incorrectUsername", "correctPassword"), // Username Incorrect
 //                new UserDetails("FAC-973-support", "incorrectPassword"), // Username and Password Incorrect
 //                new UserDetails("Sharma", "correctPassword") ,
-             //   new UserDetails("scott", "scott")
+//                new UserDetails("scott", "scott")
                  new UserDetails("FAC-989-support","Admin@123")
                 // Account Locked (after multiple attempts)
         );

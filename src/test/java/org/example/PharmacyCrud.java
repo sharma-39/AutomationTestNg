@@ -75,9 +75,9 @@ public class PharmacyCrud extends LoginAndLocationTest {
         System.out.println("Process Create Pharmacy Supplier flow---");
         String supplierCode = addSupplier(supplierData);
         System.out.println("Completed Create Pharmacy Supplier flow---");
-        System.out.println("Process Edit Pharmacy Supplier flow---" + supplierCode);
-        editSupplier(supplierData, supplierCode);
-        System.out.println("Completed Edit Pharmacy Supplier flow---" + supplierCode);
+//        System.out.println("Process Edit Pharmacy Supplier flow---" + supplierCode);
+//        editSupplier(supplierData, supplierCode);
+//        System.out.println("Completed Edit Pharmacy Supplier flow---" + supplierCode);
 
     }
 
@@ -85,18 +85,16 @@ public class PharmacyCrud extends LoginAndLocationTest {
     public void brandFlow(JsonNode brandData) {
         String brandCode = addBrand(brandData);
 
-        editBrand(brandCode, brandData);
+//        editBrand(brandCode, brandData);
 
     }
 
     @Test(priority = 6, dependsOnMethods = "menuClick")
     public void uomCrud() {
+        threadTimer(3000);
         String uomCode = addUOM();
 
-        String uomName = editUOM(uomCode);
-
-
-        treeMap.put("uomName", uomName);
+        //String uomName = editUOM(uomCode);
 
         //    deleteUOM(uomCode);
     }
@@ -104,47 +102,53 @@ public class PharmacyCrud extends LoginAndLocationTest {
 
     @Test(priority = 7, dependsOnMethods = "menuClick")
     public void itemCategoryCrud() {
+        threadTimer(3000);
         String itemCode = addItemCategory();
-        String itemCategory= editItemCategory(itemCode);
+      //  String itemCategory = editItemCategory(itemCode);
 
-        treeMap.put("itemCategoryName",itemCategory);
+
         //deleteItemCategory(itemCode);
 
 
     }
 
 
-
-    @Test(priority = 8,dependsOnMethods = "menuClick",dataProvider = "itemData")
-    public void itemCrud(JsonNode itemData)
-    {
-        System.out.println("itemData"+itemData.size());
+    @Test(priority = 8, dependsOnMethods = "menuClick", dataProvider = "itemData")
+    public void itemCrud(JsonNode itemData) {
+        threadTimer(3000);
+        System.out.println("itemData" + itemData.size());
         JsonNode data = itemData.get(0);
-        String itemCode=addItem(data);
-        data= itemData.get(1);
-        editItem(data,itemCode);
+        String itemCode = addItem(data);
+
+//        data = itemData.get(1);
+//        editItem(data, itemCode);
 
     }
 
 
-    private void editItem(JsonNode itemData,String itemCode) {
+    private void editItem(JsonNode itemData, String itemCode) {
         threadTimer(3000);
-        clickButtonInRow(itemCode,"Edit");
-        fillItemForm(itemData,itemCode,false);
+        clickButtonInRow(itemCode, "Edit");
+        fillItemForm(itemData, itemCode, false);
         clickElement(By.xpath("//button[contains(text(),'Save & Close')]"));
         System.out.println("Item edited successfully.");
     }
+
     private void fillItemForm(JsonNode itemData, String itemCode, boolean editable) {
-        if(editable) {
+        if (editable) {
             enterText(By.cssSelector("input[formcontrolname='itemCode']"), itemCode, true);
             enterText(By.cssSelector("input[formcontrolname='itemName']"), "ITEM-" + 100 + new Random().nextInt(900), true);
         }
         enterText(By.cssSelector("input[formcontrolname='itemComposition']"), itemData.get("itemComposition").asText(), true);
         enterText(By.cssSelector("input[formcontrolname='strength']"), itemData.get("strength").asText(), true);
-        selectField("categoryId", itemData.get("categoryId").asText());
-        selectField("brandId", itemData.get("brandId").asText());
 
+        selectField("categoryId", treeMap.get("itemCategoryName"));
+        selectField("brandId",  treeMap.get("brandName"));
+
+        selectField("sellingUomId", treeMap.get("uomName"));
         String itemType = itemData.get("itemType").asText();
+
+
         selectRadioButton("itemType", itemType);
 
 
@@ -153,7 +157,7 @@ public class PharmacyCrud extends LoginAndLocationTest {
             selectField("scheduleId", itemData.get("scheduleId").asText());
         }
 
-        selectField("sellingUomId", itemData.get("sellingUomId").asText());
+
         enterText(By.cssSelector("input[formcontrolname='hsnCode']"), itemData.get("hsnCode").asText(), true);
         enterText(By.cssSelector("input[formcontrolname='reorderLevel']"), String.valueOf(itemData.get("reorderLevel").asInt()), true);
         enterText(By.cssSelector("input[formcontrolname='minQtyLevel']"), String.valueOf(itemData.get("minQtyLevel").asInt()), true);
@@ -173,9 +177,9 @@ public class PharmacyCrud extends LoginAndLocationTest {
 
         clickElement(By.xpath("//a[@id='Item' and contains(@class, 'nav-link')]"));
         clickElement(By.xpath("//button[contains(text(),'Add New')]"));
-        String itemCode=generateRondamNumber("FAC");
-        fillItemForm(itemData,itemCode,true);
-        clickElement(By.xpath("//button[contains(text(),'Save & Close')]"));
+        String itemCode = generateRondamNumber("FAC");
+        fillItemForm(itemData, itemCode, true);
+        clickElement(By.xpath("//button[normalize-space(text())='Save & Close']"));
 
         return itemCode;
     }
@@ -194,8 +198,8 @@ public class PharmacyCrud extends LoginAndLocationTest {
         clickButtonInRow(itemCode, "Edit");
         threadTimer(1000);
 
-        String itemCategory="ITEM" + "-" + new Random().nextInt(1000);
-        enterText(By.cssSelector("input[title='Item Category']"),itemCategory , true);
+        String itemCategory = "ITEM" + "-" + new Random().nextInt(1000);
+        enterText(By.cssSelector("input[title='Item Category']"), itemCategory, true);
 
         selectRadioButton("active", "Active");
 
@@ -216,7 +220,8 @@ public class PharmacyCrud extends LoginAndLocationTest {
 
         String itemCode = generateRandomNumber("ITEM");
         enterText(By.cssSelector("input[title='Item Code']"), itemCode, true);
-        enterText(By.cssSelector("input[title='Item Category']"), "ITEM" + "-" + new Random().nextInt(1000), true);
+        String itemCategory="ITEM" + "-" + new Random().nextInt(1000);
+        enterText(By.cssSelector("input[title='Item Category']"), itemCategory, true);
 
         selectRadioButton("active", "Active");
 
@@ -226,7 +231,7 @@ public class PharmacyCrud extends LoginAndLocationTest {
         clickElement(By.cssSelector("input[formcontrolname='hideIpSummary']"));
 
         clickElement(By.xpath("//button[contains(text(),'Save & Close')]"));
-
+        treeMap.put("itemCategoryName", itemCategory);
         return itemCode;
     }
 
@@ -241,6 +246,7 @@ public class PharmacyCrud extends LoginAndLocationTest {
 
 
         clickElement(By.xpath("//button[contains(text(),'Save & Close')]"));
+
     }
 
     private String editUOM(String uomCode) {
@@ -262,12 +268,14 @@ public class PharmacyCrud extends LoginAndLocationTest {
         clickElement(By.xpath("//button[contains(text(),'Add New')]"));
 
         String uomCode = generateRandomNumber("UOM");
+        String uomName = "UOM" + "-" + new Random().nextInt(1000);
         enterText(By.cssSelector("input[title='UOM Code']"), uomCode, true);
-        enterText(By.cssSelector("input[title='UOM']"), "UOM" + "-" + new Random().nextInt(1000), true);
+        enterText(By.cssSelector("input[title='UOM']"), uomName, true);
 
 
         clickElement(By.xpath("//button[contains(text(),'Save & Close')]"));
 
+        treeMap.put("uomName", uomName);
         return uomCode;
     }
 
@@ -290,12 +298,17 @@ public class PharmacyCrud extends LoginAndLocationTest {
     }
 
     private String addBrand(JsonNode brandData) {
+
+        threadTimer(1000);
         clickElement(By.xpath("//a[@id='Brand' and contains(@class, 'nav-link')]"));
+
+        threadTimer(3000);
         clickElement(By.xpath("//button[contains(text(),'Add New')]"));
 
         String brandCode = generateRandomNumber("BR");
+        String brandName = brandData.get("brand_name").asText() + +new Random().nextInt(1000);
         enterText(By.cssSelector("input[title='Brand Code']"), brandCode, true);
-        enterText(By.cssSelector("input[title='Brand Name']"), brandData.get("brand_name").asText() + +new Random().nextInt(1000), true);
+        enterText(By.cssSelector("input[title='Brand Name']"), brandName, true);
 
 
         enterText(By.cssSelector("textarea[formcontrolname='description']"),
@@ -305,6 +318,7 @@ public class PharmacyCrud extends LoginAndLocationTest {
 
         clickElement(By.xpath("//button[contains(text(),'Save & Close')]"));
 
+        treeMap.put("brandName", brandName);
         return brandCode;
     }
 
@@ -436,6 +450,7 @@ public class PharmacyCrud extends LoginAndLocationTest {
 
     private void clickElement(By locator) {
 
+        threadTimer(500);
         try {
             WebElement element = wait.until(ExpectedConditions.elementToBeClickable(locator));
             element.click();

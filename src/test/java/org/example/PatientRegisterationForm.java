@@ -203,14 +203,15 @@ public class PatientRegisterationForm extends LoginAndLocationTest {
                         errorMessageHandle(driver, wait);
                     }
                 }
+
             } catch (Exception e) {
                 System.out.println("Error during form submission: " + e.getMessage());
                 e.printStackTrace();
             }
-            if (scenario == 7 || scenario == 8) {
-                JavascriptExecutor js = (JavascriptExecutor) driver;
-                js.executeScript("location.reload()");
+            if(scenario ==1 || scenario==2 || scenario ==3 || scenario ==4 ||scenario ==5 || scenario == 7 || scenario == 8) {
+                scenario++;
             } else if (scenario == 6 || scenario ==10) {
+                scenario++;
                 findMantatoryFields();
 
                 threadTimer(2000);
@@ -220,13 +221,14 @@ public class PatientRegisterationForm extends LoginAndLocationTest {
                 reset.click();
                 Assert.fail(""+getScenarioDescription(patientData));
 
-            } else {
+            } else  {
                 WebElement reset = wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//button[contains(text(),'Reset')]")));
                 System.out.println("Reset clicked");
                 reset.click();
             }
-            scenario++;
+
             threadTimer(3000);
+
         }
     }
 
