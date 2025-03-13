@@ -27,7 +27,7 @@ public class PatientRegisterationForm extends LoginAndLocationTest {
         return new Object[][]{
                 // Scenario 1: DOB < 18 → Fill Parent Details
                 {createPatientData(
-                        "Mr.", "Test Name"+generateRandomFirstName(5)+generateRandomFirstName(5), "M", "D/O", "A +ve", "Intulogic", "05-05-2010", "9791310502",
+                        "Mr.", "Test Name" + generateRandomFirstName(5) + generateRandomFirstName(5), "M", "D/O", "A +ve", "Intulogic", "05-05-2010", "9791310502",
                         "Murugaiyan", "9883834874", "Male", "Married", "77 west street srinivasonnalur kumbakonam",
                         "sharmamurugaiyan@gmail.com", "Tamil Nadu", "Chennai", "F CVT", "fill any value", "612204",
                         "Test", "Brother", "9477477478", "test@gmail.com", "Indian", "267323633773", "application", "good",
@@ -35,7 +35,7 @@ public class PatientRegisterationForm extends LoginAndLocationTest {
                 ), true},
                 // Scenario 2: DOB ≥ 18 → Fill Phone Number
                 {createPatientData(
-                        "Mr.", "Test Name"+generateRandomFirstName(5), "M", "D/O", "A +ve", "Intulogic", "05-05-1994", "9791310502",
+                        "Mr.", "Test Name" + generateRandomFirstName(5), "M", "D/O", "A +ve", "Intulogic", "05-05-1994", "9791310502",
                         null, null, "Male", "Married", "77 west street srinivasonnalur kumbakonam",
                         "sharmamurugaiyan@gmail.com", "Tamil Nadu", "Chennai", "F CVT", "fill any diagnonsis", "612204",
                         null, null, null, null, "Indian", "267323633773", "application", "good",
@@ -43,7 +43,7 @@ public class PatientRegisterationForm extends LoginAndLocationTest {
                 ), true},
                 // Scenario 3: Title is NULL → Fill all fields
                 {createPatientData(
-                        "Mr.", "Test Name"+generateRandomFirstName(5), "M", "Cancel", "A +ve", null, "05-05-1994", "9791310502",
+                        "Mr.", "Test Name" + generateRandomFirstName(5), "M", "Cancel", "A +ve", null, "05-05-1994", "9791310502",
                         null, null, "Male", "Married", "77 west street srinivasonnalur kumbakonam",
                         "sharmamurugaiyan@gmail.com", "Tamil Nadu", "Chennai", "F CVT", "fill any diagnonsis", "612204",
                         null, null, null, null, "Indian", "267323633773", "application", "good",
@@ -51,7 +51,7 @@ public class PatientRegisterationForm extends LoginAndLocationTest {
                 ), true},
                 // Scenario 4: Title = "D/O" → Fill Guardian Name
                 {createPatientData(
-                        "Mr.", "Test Name"+generateRandomFirstName(5), "M", "D/O", "A +ve", "Guardian Test", "05-05-1994", "9791310502",
+                        "Mr.", "Test Name" + generateRandomFirstName(5), "M", "D/O", "A +ve", "Guardian Test", "05-05-1994", "9791310502",
                         null, null, "Male", "Married", "77 west street srinivasonnalur kumbakonam",
                         "sharmamurugaiyan@gmail.com", "Tamil Nadu", "Chennai", "F CVT", "fill any diagnonsis", "612204",
                         null, null, null, null, "Indian", "267323633773", "application", "good",
@@ -59,7 +59,7 @@ public class PatientRegisterationForm extends LoginAndLocationTest {
                 ), true},
                 // Scenario 5: Fill Only Mandatory Fields
                 {createPatientData(
-                        null, "Test Name"+generateRandomFirstName(5), null, "Cancel", null, null, "05-05-1994", "9791310502",
+                        null, "Test Name" + generateRandomFirstName(5), null, "Cancel", null, null, "05-05-1994", "9791310502",
                         null, null, "Male", null, null,
                         null, "Tamil Nadu", "Chennai", null, null, null,
                         null, null, null, null, null, null, null, null,
@@ -75,7 +75,7 @@ public class PatientRegisterationForm extends LoginAndLocationTest {
                 ), false},
                 // Scenario 7: Select "Insurance = Yes" → Fill Insurance Fields
                 {createPatientData(
-                        "Mr.", "Test Name"+generateRandomFirstName(5), "M", "D/O", "A +ve", "Intulogic", "05-05-1994", "9791310502",
+                        "Mr.", "Test Name" + generateRandomFirstName(5), "M", "D/O", "A +ve", "Intulogic", "05-05-1994", "9791310502",
                         null, null, "Male", "Married", "77 west street srinivasonnalur kumbakonam",
                         "sharmamurugaiyan@gmail.com", "Tamil Nadu", "Chennai", "F CVT", "fill any diagnonsis", "612204",
                         null, null, null, null, "Indian", "267323633773", "application", "good",
@@ -83,7 +83,7 @@ public class PatientRegisterationForm extends LoginAndLocationTest {
                 ), true},
                 // Scenario 8: Select "Insurance = No"
                 {createPatientData(
-                        "Mr.", "Test Name"+generateRandomFirstName(5), "M", "D/O", "A +ve", "Intulogic", "05-05-1994", "9791310502",
+                        "Mr.", "Test Name" + generateRandomFirstName(5), "M", "D/O", "A +ve", "Intulogic", "05-05-1994", "9791310502",
                         null, null, "Male", "Married", "77 west street srinivasonnalur kumbakonam",
                         "sharmamurugaiyan@gmail.com", "Tamil Nadu", "Chennai", "F CVT", "fill any diagnonsis", "612204",
                         null, null, null, null, "Indian", "267323633773", "application", "good",
@@ -96,7 +96,7 @@ public class PatientRegisterationForm extends LoginAndLocationTest {
                 "sharmamurugaiyan@gmail.com", "Tamil Nadu", "Chennai", "F CVT", "fill any diagnonsis", "612204",
                 null, null, null, null, "Indian", "267323633773", "application", "good",
                 "No", null, null, "testing purpose"
-        ), false}
+                 ), false}
 
                 // Scenario 10: email and phone length error validator throw patient registeration
                 , {createPatientData(
@@ -162,7 +162,7 @@ public class PatientRegisterationForm extends LoginAndLocationTest {
     }
 
 
-    @Test(priority = 4, dataProvider = "patientDataProvider" , description = "Patient Registration Test")
+    @Test(priority = 4, dataProvider = "patientDataProvider", description = "Patient Registration Test")
     public void patientRegisteration(JSONObject patientData, boolean expectedResult) throws IOException, InterruptedException {
         if (isLoginSuccessful) {
             // Print the scenario description, data, and expected result
@@ -208,9 +208,9 @@ public class PatientRegisterationForm extends LoginAndLocationTest {
                 System.out.println("Error during form submission: " + e.getMessage());
                 e.printStackTrace();
             }
-            if(scenario ==1 || scenario==2 || scenario ==3 || scenario ==4 ||scenario ==5 || scenario == 7 || scenario == 8) {
+            if (scenario == 1 || scenario == 2 || scenario == 3 || scenario == 4 || scenario == 5 || scenario == 7 || scenario == 8) {
                 scenario++;
-            } else if (scenario == 6 || scenario ==10) {
+            } else if (scenario == 6 || scenario == 10) {
                 scenario++;
                 findMantatoryFields();
 
@@ -219,9 +219,9 @@ public class PatientRegisterationForm extends LoginAndLocationTest {
                 WebElement reset = wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//button[contains(text(),'Reset')]")));
                 System.out.println("Reset clicked");
                 reset.click();
-                Assert.fail(""+getScenarioDescription(patientData));
+                Assert.fail(getScenarioDescription(patientData));
 
-            } else  {
+            } else {
                 WebElement reset = wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//button[contains(text(),'Reset')]")));
                 System.out.println("Reset clicked");
                 reset.click();
@@ -260,6 +260,7 @@ public class PatientRegisterationForm extends LoginAndLocationTest {
         }
 
     }
+
     private void fillAllFieldsFromJSON(JSONObject patientData) throws InterruptedException {
         String[] allFields = {
                 "salutation", "firstName", "lastName", "title", "bloodGroup", "guardianName",
@@ -405,7 +406,7 @@ public class PatientRegisterationForm extends LoginAndLocationTest {
                 System.out.println("Mandatory Field -> Title: " + title +
                         ", FormControlName: " + formControlName +
                         ", Placeholder: " + placeholder);
-               if (formControlName != null && !formControlName.isEmpty()) {
+                if (formControlName != null && !formControlName.isEmpty()) {
                     mandatoryFieldsMap.put(formControlName, true);
                 }
             }
@@ -436,8 +437,7 @@ public class PatientRegisterationForm extends LoginAndLocationTest {
             ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView({block: 'center'});", radioButton);
             ((JavascriptExecutor) driver).executeScript("arguments[0].click();", radioButton);
             System.out.println("Selected radio button: " + value);
-            if(value.equals("Yes"))
-            {
+            if (value.equals("Yes")) {
                 selectInsuranceId();
             }
         } catch (TimeoutException e) {
@@ -446,7 +446,7 @@ public class PatientRegisterationForm extends LoginAndLocationTest {
     }
 
     private void selectSelectDropdown(String id, String value) {
-        System.out.println("" + id + "" + value);
+        System.out.println(id + value);
         if (id.equals("state")) {
             id = "cityChange";
         }
@@ -643,7 +643,7 @@ public class PatientRegisterationForm extends LoginAndLocationTest {
             System.out.println("Year '" + yearText + "' selected.");
         } catch (Exception e) {
             js.executeScript("arguments[0].value='2026'; arguments[0].dispatchEvent(new Event('change'));", yearSelectElement);
-            System.out.println("Year '"+yearText+"' selected using JavaScript.");
+            System.out.println("Year '" + yearText + "' selected using JavaScript.");
         }
 
         String desiredDate = dateText;
