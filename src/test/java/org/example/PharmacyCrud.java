@@ -53,6 +53,15 @@ public class PharmacyCrud extends LoginAndLocationTest {
         return data;
     }
 
+    @DataProvider(name = "itemData")
+    public Object[][] getItemData() throws IOException {
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        JsonNode jsonNodes = objectMapper.readTree(new File("src/test/resources/items.json"));
+
+        return new Object[][]{{jsonNodes}};
+    }
+
     @Test(priority = 3)
     public void menuClick() {
         if (isLoginSuccessful) {
@@ -106,79 +115,66 @@ public class PharmacyCrud extends LoginAndLocationTest {
 
 
 
-    @Test(priority = 8,dependsOnMethods = "menuClick")
-    public void itemCrud()
+    @Test(priority = 8,dependsOnMethods = "menuClick",dataProvider = "itemData")
+    public void itemCrud(JsonNode itemData)
     {
-       String itemCode=addItem();
+        System.out.println("itemData"+itemData.size());
+        JsonNode data = itemData.get(0);
+        String itemCode=addItem(data);
+        data= itemData.get(1);
+        editItem(data,itemCode);
+
     }
 
-    private String addItem() {
+
+    private void editItem(JsonNode itemData,String itemCode) {
+        threadTimer(3000);
+        clickButtonInRow(itemCode,"Edit");
+        fillItemForm(itemData,itemCode,false);
+        clickElement(By.xpath("//button[contains(text(),'Save & Close')]"));
+        System.out.println("Item edited successfully.");
+    }
+    private void fillItemForm(JsonNode itemData, String itemCode, boolean editable) {
+        if(editable) {
+            enterText(By.cssSelector("input[formcontrolname='itemCode']"), itemCode, true);
+            enterText(By.cssSelector("input[formcontrolname='itemName']"), "ITEM-" + 100 + new Random().nextInt(900), true);
+        }
+        enterText(By.cssSelector("input[formcontrolname='itemComposition']"), itemData.get("itemComposition").asText(), true);
+        enterText(By.cssSelector("input[formcontrolname='strength']"), itemData.get("strength").asText(), true);
+        selectField("categoryId", itemData.get("categoryId").asText());
+        selectField("brandId", itemData.get("brandId").asText());
+
+        String itemType = itemData.get("itemType").asText();
+        selectRadioButton("itemType", itemType);
+
+
+        if (!"Non-Medicinal".equals(itemType)) {
+            selectField("drugType", itemData.get("drugType").asText());
+            selectField("scheduleId", itemData.get("scheduleId").asText());
+        }
+
+        selectField("sellingUomId", itemData.get("sellingUomId").asText());
+        enterText(By.cssSelector("input[formcontrolname='hsnCode']"), itemData.get("hsnCode").asText(), true);
+        enterText(By.cssSelector("input[formcontrolname='reorderLevel']"), String.valueOf(itemData.get("reorderLevel").asInt()), true);
+        enterText(By.cssSelector("input[formcontrolname='minQtyLevel']"), String.valueOf(itemData.get("minQtyLevel").asInt()), true);
+        enterText(By.cssSelector("input[formcontrolname='rackNumber']"), itemData.get("rackNumber").asText(), true);
+        enterText(By.cssSelector("input[formcontrolname='version']"), itemData.get("version").asText(), true);
+        selectRadioButton("gstType", itemData.get("gstType").asText());
+        enterText(By.cssSelector("input[title='Maximum Discount(%)']"), String.valueOf(itemData.get("maxDiscount").asInt()), true);
+        enterText(By.cssSelector("textarea[formcontrolname='itemDescription']"), itemData.get("itemDescription").asText(), true);
+        selectRadioButton("returnable", itemData.get("returnable").asText());
+
+        if (itemData.get("hideIpSummary").asBoolean()) {
+            clickElement(By.cssSelector("input[formcontrolname='hideIpSummary']"));
+        }
+    }
+
+    private String addItem(JsonNode itemData) {
+
         clickElement(By.xpath("//a[@id='Item' and contains(@class, 'nav-link')]"));
         clickElement(By.xpath("//button[contains(text(),'Add New')]"));
-
-
-
         String itemCode=generateRondamNumber("FAC");
-
-        enterText(By.cssSelector("input[formcontrolname='itemCode']"),
-               itemCode , true);
-        enterText(By.cssSelector("input[formcontrolname='itemName']"),
-                "ITEM-"+ 100 + new Random().nextInt(900) , true);
-
-        enterText(By.cssSelector("input[formcontrolname='itemComposition']"),
-               "AZ2123" , true);
-        enterText(By.cssSelector("input[formcontrolname='strength']"),
-                "AZ2123" , true);
-
-        selectField("categoryId", "GLOVES");
-
-        selectField("brandId","BRAND102");
-
-
-        String itemType="Non-Medicinal";
-        if(itemType!=null) {
-            selectRadioButton("itemType", itemType);
-        }
-        if(!itemType.equals("Non-Medicinal")) {
-            selectField("drugType", "Others");
-            selectField("scheduleId","Others");
-        }
-
-
-        selectField("sellingUomId","Other");
-
-        enterText(By.cssSelector("input[formcontrolname='hsnCode']"),
-                "AZ21232" , true);
-
-        enterText(By.cssSelector("input[formcontrolname='reorderLevel']"),
-                "32" , true);
-
-        enterText(By.cssSelector("input[formcontrolname='minQtyLevel']"),
-                "10" , true);
-
-
-        enterText(By.cssSelector("input[formcontrolname='rackNumber']"),
-                "AZ21232" , true);
-
-        enterText(By.cssSelector("input[formcontrolname='version']"),
-                "2.0" , true);
-
-
-        selectRadioButton("gstType","Services");
-
-        enterText(By.cssSelector("input[title='Maximum Discount(%)']"), "10", true);
-
-
-
-
-        enterText(By.cssSelector("textarea[formcontrolname='itemDescription']"),
-                "item  field ", true);
-
-        selectRadioButton("returnable","No");
-
-        clickElement(By.cssSelector("input[formcontrolname='hideIpSummary']"));
-
-
+        fillItemForm(itemData,itemCode,true);
         clickElement(By.xpath("//button[contains(text(),'Save & Close')]"));
 
         return itemCode;
@@ -455,6 +451,7 @@ public class PharmacyCrud extends LoginAndLocationTest {
         WebElement inputField = wait.until(ExpectedConditions.visibilityOfElementLocated(locator));
         inputField.clear();
         inputField.sendKeys(text);
+        threadTimer(500);
     }
 
     public String generateRondamNumber(String prefix) {
@@ -570,6 +567,7 @@ public class PharmacyCrud extends LoginAndLocationTest {
             ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView({block: 'center'});", radioButton);
             ((JavascriptExecutor) driver).executeScript("arguments[0].click();", radioButton);
             System.out.println("Selected radio button: " + value);
+            threadTimer(500);
         } catch (TimeoutException e) {
             System.out.println("Radio button with value '" + value + "' not found!");
         }
