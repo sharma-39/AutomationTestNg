@@ -70,48 +70,48 @@ public class PharmacyCrud extends LoginAndLocationTest {
     }
 
 
-//    @Test(priority = 4, dependsOnMethods = "menuClick", dataProvider = "supplierData")
-//    public void supplierFlow(JsonNode supplierData) {
-//        System.out.println("Process Create Pharmacy Supplier flow---");
-//        String supplierCode = addSupplier(supplierData);
-//        System.out.println("Completed Create Pharmacy Supplier flow---");
-//        System.out.println("Process Edit Pharmacy Supplier flow---" + supplierCode);
-//        editSupplier(supplierData, supplierCode);
-//        System.out.println("Completed Edit Pharmacy Supplier flow---" + supplierCode);
-//
-//    }
-//
-//    @Test(priority = 5, dependsOnMethods = "menuClick", dataProvider = "brandData")
-//    public void brandFlow(JsonNode brandData) {
-//        String brandCode = addBrand(brandData);
-//
-//        editBrand(brandCode, brandData);
-//
-//    }
-//
-//    @Test(priority = 6, dependsOnMethods = "menuClick")
-//    public void uomCrud() {
-//        String uomCode = addUOM();
-//
-//        String uomName = editUOM(uomCode);
-//
-//
-//        treeMap.put("uomName", uomName);
-//
-//        //    deleteUOM(uomCode);
-//    }
-//
-//
-//    @Test(priority = 7, dependsOnMethods = "menuClick")
-//    public void itemCategoryCrud() {
-//        String itemCode = addItemCategory();
-//        String itemCategory= editItemCategory(itemCode);
-//
-//        treeMap.put("itemCategoryName",itemCategory);
-//        //deleteItemCategory(itemCode);
-//
-//
-//    }
+    @Test(priority = 4, dependsOnMethods = "menuClick", dataProvider = "supplierData")
+    public void supplierFlow(JsonNode supplierData) {
+        System.out.println("Process Create Pharmacy Supplier flow---");
+        String supplierCode = addSupplier(supplierData);
+        System.out.println("Completed Create Pharmacy Supplier flow---");
+        System.out.println("Process Edit Pharmacy Supplier flow---" + supplierCode);
+        editSupplier(supplierData, supplierCode);
+        System.out.println("Completed Edit Pharmacy Supplier flow---" + supplierCode);
+
+    }
+
+    @Test(priority = 5, dependsOnMethods = "menuClick", dataProvider = "brandData")
+    public void brandFlow(JsonNode brandData) {
+        String brandCode = addBrand(brandData);
+
+        editBrand(brandCode, brandData);
+
+    }
+
+    @Test(priority = 6, dependsOnMethods = "menuClick")
+    public void uomCrud() {
+        String uomCode = addUOM();
+
+        String uomName = editUOM(uomCode);
+
+
+        treeMap.put("uomName", uomName);
+
+        //    deleteUOM(uomCode);
+    }
+
+
+    @Test(priority = 7, dependsOnMethods = "menuClick")
+    public void itemCategoryCrud() {
+        String itemCode = addItemCategory();
+        String itemCategory= editItemCategory(itemCode);
+
+        treeMap.put("itemCategoryName",itemCategory);
+        //deleteItemCategory(itemCode);
+
+
+    }
 
 
 
