@@ -547,7 +547,7 @@ public class ConfigurateAge extends LoginAndLocationTest {
 
         WebElement resultElement = wait.until(driver -> {
             List<By> locators = Arrays.asList(
-                    By.xpath("//div[contains(@class, 'container-2')]/p[contains(text(),'Pharmacy Billing is on hold due to Stock Adjustment')]"),
+                    By.xpath("//div[contains(@class, 'container-2')]/p[contains(text(),'New Supplier Added Successfully')]"),
                     By.xpath("//div[contains(@class, 'container-2')]/p[contains(text(),'Bill Saved Successfully')]")
 
             );

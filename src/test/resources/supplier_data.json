@@ -4,7 +4,8 @@
     "supplierNamePrefix": "Supplier",
     "drugLicensePrefix": "DRUG",
     "phone": {
-      "countryCode": "91"
+      "countryCode": "91",
+      "phoneNumber": "9791310502"
     },
     "emailDomain": "example.com",
     "fax": "22389233",
@@ -20,7 +21,8 @@
     "pointOfContact": {
       "name": "Supplier M",
       "phone": {
-        "countryCode": "91"
+        "countryCode": "91",
+        "pointPhNumber": "9791310502"
       }
     }
   }
