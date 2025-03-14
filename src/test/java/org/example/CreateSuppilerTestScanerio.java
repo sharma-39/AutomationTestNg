@@ -13,6 +13,7 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
+import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 
 import java.time.Duration;
@@ -23,7 +24,9 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
+import java.util.function.Supplier;
 
+@Listeners(SupplierTestListener.class)
 public class CreateSuppilerTestScanerio extends LoginAndLocationTest {
 
     private final static HashMap<String, String> treeMap = new HashMap<>();
@@ -211,7 +214,7 @@ public class CreateSuppilerTestScanerio extends LoginAndLocationTest {
                 printErrorMessage = "Supplier code already exits";
             }
             // If the test is expected to fail, ensure the supplier code is null
-            Assert.fail("Supplier creation passed when it was expected to fail." + printErrorMessage);
+              Assert.fail("Supplier creation passed when it was expected to fail." + printErrorMessage.trim());
 
         }
 

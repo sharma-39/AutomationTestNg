@@ -1,10 +1,14 @@
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
 <suite name="AutomationSuite">
+    <listeners>
+        <listener class-name="org.example.SupplierTestListener" />
+    </listeners>
+
     <test name="LoginTests">
         <classes>
-<!--            <class name="org.example.ConfigurateAge"/>-->
+            <!-- <class name="org.example.ConfigurateAge"/> -->
             <class name="org.example.CreateSuppilerTestScanerio"/>
-<!--            <class name="org.example.CreateSeperateBillOP"></class>-->
+            <!-- <class name="org.example.CreateSeperateBillOP"></class> -->
         </classes>
     </test>
 </suite>
